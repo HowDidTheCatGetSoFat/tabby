@@ -166,6 +166,28 @@ export class Application {
         }
     }
 
+    tileWindows (): void {
+        const windows = this.windows.filter(w => !w.isDestroyed() && w.isVisible())
+        if (windows.length < 2) {
+            return
+        }
+        const focused = windows.find(w => w.isFocused()) ?? windows[0]
+        const focusedBounds = focused.getBounds()
+        const area = (focusedBounds ? screen.getDisplayMatching(focusedBounds) : screen.getPrimaryDisplay()).workArea
+        const columns = Math.ceil(Math.sqrt(windows.length))
+        const rows = Math.ceil(windows.length / columns)
+        windows.forEach((window, index) => {
+            const column = index % columns
+            const row = Math.floor(index / columns)
+            window.setBounds({
+                x: Math.round(area.x + column * area.width / columns),
+                y: Math.round(area.y + row * area.height / rows),
+                width: Math.round(area.width / columns),
+                height: Math.round(area.height / rows),
+            })
+        })
+    }
+
     broadcast (event: string, ...args: any[]): void {
         for (const window of this.windows) {
             window.send(event, ...args)

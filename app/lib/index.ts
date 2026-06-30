@@ -48,6 +48,10 @@ ipcMain.on('app:new-window', () => {
     application.newWindow()
 })
 
+ipcMain.on('app:tile-windows', () => {
+    application.tileWindows()
+})
+
 process.on('uncaughtException' as any, err => {
     console.log(err)
     application.broadcast('uncaughtException', err)

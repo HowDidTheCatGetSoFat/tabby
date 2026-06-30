@@ -17,6 +17,10 @@ export class AutoTileHotkeyProvider extends HotkeyProvider {
             id: 'auto-tile-rows',
             name: this.translate.instant('Tile tabs in rows'),
         },
+        {
+            id: 'auto-tile-windows',
+            name: this.translate.instant('Tile windows'),
+        },
     ]
 
     constructor (private translate: TranslateService) { super() }

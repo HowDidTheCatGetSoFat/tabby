@@ -488,6 +488,17 @@ export class Window {
         })
     }
 
+    getBounds (): Rectangle | undefined {
+        return this.window?.getBounds()
+    }
+
+    setBounds (bounds: Rectangle): void {
+        if (this.window?.isMaximized()) {
+            this.window.unmaximize()
+        }
+        this.window?.setBounds(bounds)
+    }
+
     private setupUpdater () {
         autoUpdater.autoDownload = true
         autoUpdater.autoInstallOnAppQuit = true
