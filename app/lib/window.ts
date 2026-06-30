@@ -499,6 +499,19 @@ export class Window {
         this.window?.setBounds(bounds)
     }
 
+    getId (): number {
+        return this.window?.id ?? -1
+    }
+
+    getTitle (): string {
+        return this.window?.getTitle() ?? 'Tabby'
+    }
+
+    close (): void {
+        this.closing = true
+        this.window?.close()
+    }
+
     private setupUpdater () {
         autoUpdater.autoDownload = true
         autoUpdater.autoInstallOnAppQuit = true

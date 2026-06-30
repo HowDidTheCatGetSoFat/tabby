@@ -39,6 +39,15 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
             if (hotkey === 'auto-tile-move-window') {
                 autoTile.moveActiveTabToNewWindow()
             }
+            if (hotkey === 'auto-tile-cascade-windows') {
+                autoTile.cascadeWindows()
+            }
+            if (hotkey === 'auto-tile-window-switcher') {
+                void autoTile.switchWindow()
+            }
+            if (hotkey === 'auto-tile-close-other-windows') {
+                autoTile.closeOtherWindows()
+            }
         })
     }
 }

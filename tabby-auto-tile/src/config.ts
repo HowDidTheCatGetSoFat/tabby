@@ -5,6 +5,7 @@ export class AutoTileConfigProvider extends ConfigProvider {
     defaults = {
         autoTile: {
             rearrangeOnChange: false,
+            tileWindowsOnMove: false,
             preset: 'grid',
         },
         hotkeys: {
@@ -13,6 +14,9 @@ export class AutoTileConfigProvider extends ConfigProvider {
             'auto-tile-rows': [],
             'auto-tile-windows': [],
             'auto-tile-move-window': [],
+            'auto-tile-cascade-windows': [],
+            'auto-tile-window-switcher': [],
+            'auto-tile-close-other-windows': [],
         },
     }
 

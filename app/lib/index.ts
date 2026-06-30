@@ -52,9 +52,28 @@ ipcMain.on('app:tile-windows', (_event, preset) => {
     application.tileWindows(preset)
 })
 
-ipcMain.on('app:new-window-with-tab', async (_event, token) => {
+ipcMain.on('app:cascade-windows', () => {
+    application.cascadeWindows()
+})
+
+ipcMain.handle('app:list-windows', event => {
+    return application.listWindows(event.sender)
+})
+
+ipcMain.on('app:focus-window', (_event, id) => {
+    application.focusWindow(id)
+})
+
+ipcMain.on('app:close-other-windows', event => {
+    application.closeOtherWindows(event.sender)
+})
+
+ipcMain.on('app:new-window-with-tab', async (_event, payload) => {
     const window = await application.newWindow()
-    window.send('host:open-tab', token)
+    window.send('host:open-tab', payload.token)
+    if (payload.tile) {
+        application.tileWindows(payload.tile)
+    }
 })
 
 process.on('uncaughtException' as any, err => {

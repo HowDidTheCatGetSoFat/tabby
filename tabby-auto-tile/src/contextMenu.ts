@@ -52,6 +52,15 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                 },
             },
             {
+                label: this.translate.instant('Tile windows after moving a tab out'),
+                type: 'checkbox',
+                checked: this.config.store.autoTile.tileWindowsOnMove,
+                click: () => {
+                    this.config.store.autoTile.tileWindowsOnMove = !this.config.store.autoTile.tileWindowsOnMove
+                    this.config.save()
+                },
+            },
+            {
                 label: this.translate.instant('Move to new window'),
                 click: () => {
                     void this.autoTile.moveTabToNewWindow(tab)
@@ -60,6 +69,29 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
             {
                 label: this.translate.instant('Untile tabs'),
                 click: () => this.autoTile.untile(tab),
+            },
+            {
+                label: this.translate.instant('Windows'),
+                submenu: [
+                    {
+                        label: this.translate.instant('Tile'),
+                        click: () => this.autoTile.tileWindows(this.config.store.autoTile.preset),
+                    },
+                    {
+                        label: this.translate.instant('Cascade'),
+                        click: () => this.autoTile.cascadeWindows(),
+                    },
+                    {
+                        label: this.translate.instant('Switch window'),
+                        click: () => {
+                            void this.autoTile.switchWindow()
+                        },
+                    },
+                    {
+                        label: this.translate.instant('Close other windows'),
+                        click: () => this.autoTile.closeOtherWindows(),
+                    },
+                ] as MenuItemOptions[],
             },
         ]
     }

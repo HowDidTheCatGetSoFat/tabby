@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { debounceTime } from 'rxjs'
-import { AppService, BaseTabComponent, ConfigService, NotificationsService, PartialProfile, Profile, ProfilesService, SplitTabComponent, TabRecoveryService } from 'tabby-core'
+import { AppService, BaseTabComponent, ConfigService, NotificationsService, PartialProfile, Profile, ProfilesService, SelectorService, SplitTabComponent, TabRecoveryService, TranslateService } from 'tabby-core'
 import { BaseTerminalTabComponent } from 'tabby-terminal'
 
 import { TilePreset, tilingStride } from './layout'
@@ -16,6 +16,8 @@ export class AutoTileService {
         private profiles: ProfilesService,
         private tabRecovery: TabRecoveryService,
         private notifications: NotificationsService,
+        private selector: SelectorService,
+        private translate: TranslateService,
         private zone: NgZone,
     ) {
         this.app.tabsChanged$.pipe(debounceTime(250)).subscribe(() => {
@@ -43,6 +45,27 @@ export class AutoTileService {
 
     tileWindows (preset: TilePreset): void {
         ipcRenderer.send('app:tile-windows', preset)
+    }
+
+    cascadeWindows (): void {
+        ipcRenderer.send('app:cascade-windows')
+    }
+
+    closeOtherWindows (): void {
+        ipcRenderer.send('app:close-other-windows')
+    }
+
+    async switchWindow (): Promise<void> {
+        const windows = (await ipcRenderer.invoke('app:list-windows')) as { id: number, title: string, current: boolean }[]
+        if (windows.length < 2) {
+            return
+        }
+        const options = windows.map(w => ({
+            name: w.title,
+            description: w.current ? this.translate.instant('Current window') : '',
+            callback: () => ipcRenderer.send('app:focus-window', w.id),
+        }))
+        await this.selector.show(this.translate.instant('Switch window'), options)
     }
 
     tile (preset: TilePreset): void {
@@ -145,7 +168,8 @@ export class AutoTileService {
             }
             // The token may hold config proxies that structured clone (IPC)
             // cannot serialize, so round-trip it through JSON first.
-            ipcRenderer.send('app:new-window-with-tab', JSON.parse(JSON.stringify(token)))
+            const tile = this.config.store.autoTile.tileWindowsOnMove ? this.config.store.autoTile.preset : null
+            ipcRenderer.send('app:new-window-with-tab', { token: JSON.parse(JSON.stringify(token)), tile })
         } catch (error) {
             this.notifications.error('Could not move the tab to a new window')
             console.error('auto-tile: move to new window failed', error)

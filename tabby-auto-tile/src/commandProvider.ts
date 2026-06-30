@@ -41,6 +41,27 @@ export class AutoTileCommandProvider extends CommandProvider {
                 icon: gridIcon,
                 run: async () => this.autoTile.moveActiveTabToNewWindow(),
             },
+            {
+                id: 'auto-tile:cascade-windows',
+                locations: [CommandLocation.StartPage],
+                label: this.translate.instant('Cascade windows'),
+                icon: gridIcon,
+                run: async () => this.autoTile.cascadeWindows(),
+            },
+            {
+                id: 'auto-tile:window-switcher',
+                locations: [CommandLocation.StartPage],
+                label: this.translate.instant('Switch window'),
+                icon: gridIcon,
+                run: async () => this.autoTile.switchWindow(),
+            },
+            {
+                id: 'auto-tile:close-other-windows',
+                locations: [CommandLocation.StartPage],
+                label: this.translate.instant('Close other windows'),
+                icon: gridIcon,
+                run: async () => this.autoTile.closeOtherWindows(),
+            },
         ]
     }
 

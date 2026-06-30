@@ -193,6 +193,46 @@ export class Application {
         })
     }
 
+    cascadeWindows (): void {
+        const windows = this.windows.filter(w => !w.isDestroyed() && w.isVisible())
+        if (windows.length < 2) {
+            return
+        }
+        const focused = windows.find(w => w.isFocused()) ?? windows[0]
+        const focusedBounds = focused.getBounds()
+        const area = (focusedBounds ? screen.getDisplayMatching(focusedBounds) : screen.getPrimaryDisplay()).workArea
+        const width = Math.round(area.width * 0.6)
+        const height = Math.round(area.height * 0.7)
+        const offset = 36
+        windows.forEach((window, index) => {
+            window.setBounds({
+                x: area.x + index * offset,
+                y: area.y + index * offset,
+                width,
+                height,
+            })
+        })
+        focused.present()
+    }
+
+    listWindows (sender: WebContents): { id: number, title: string, current: boolean }[] {
+        return this.windows.filter(w => !w.isDestroyed() && w.isVisible()).map(window => ({
+            id: window.getId(),
+            title: window.getTitle(),
+            current: window.webContents.id === sender.id,
+        }))
+    }
+
+    focusWindow (id: number): void {
+        this.windows.find(window => window.getId() === id)?.present()
+    }
+
+    closeOtherWindows (sender: WebContents): void {
+        for (const window of this.windows.filter(w => w.webContents.id !== sender.id)) {
+            window.close()
+        }
+    }
+
     broadcast (event: string, ...args: any[]): void {
         for (const window of this.windows) {
             window.send(event, ...args)
