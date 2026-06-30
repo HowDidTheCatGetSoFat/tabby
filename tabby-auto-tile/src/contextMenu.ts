@@ -57,6 +57,10 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                     void this.autoTile.moveTabToNewWindow(tab)
                 },
             },
+            {
+                label: this.translate.instant('Untile tabs'),
+                click: () => this.autoTile.untile(tab),
+            },
         ]
     }
 

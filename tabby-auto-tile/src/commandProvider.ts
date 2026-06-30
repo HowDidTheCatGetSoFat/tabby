@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Injectable } from '@angular/core'
-import { Command, CommandLocation, CommandProvider, ConfigService, HostAppService, ProfilesService, SelectorService, TranslateService } from 'tabby-core'
+import { Command, CommandLocation, CommandProvider, ConfigService, ProfilesService, SelectorService, TranslateService } from 'tabby-core'
 
 import { AutoTileService } from './autoTile.service'
 import { gridIcon } from './icons'
@@ -13,7 +13,6 @@ export class AutoTileCommandProvider extends CommandProvider {
         private selector: SelectorService,
         private config: ConfigService,
         private autoTile: AutoTileService,
-        private hostApp: HostAppService,
         private translate: TranslateService,
     ) {
         super()
@@ -33,7 +32,7 @@ export class AutoTileCommandProvider extends CommandProvider {
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Tile windows'),
                 icon: gridIcon,
-                run: async () => this.hostApp.tileWindows(this.config.store.autoTile.preset),
+                run: async () => this.autoTile.tileWindows(this.config.store.autoTile.preset),
             },
             {
                 id: 'auto-tile:move-window',

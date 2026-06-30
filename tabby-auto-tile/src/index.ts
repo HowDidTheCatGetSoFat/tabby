@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core'
-import { CommandProvider, ConfigProvider, ConfigService, HostAppService, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
+import { CommandProvider, ConfigProvider, ConfigService, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
 
 import { AutoTileService } from './autoTile.service'
 import { AutoTileConfigProvider } from './config'
@@ -21,7 +21,6 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
     private constructor (
         hotkeys: HotkeysService,
         autoTile: AutoTileService,
-        hostApp: HostAppService,
         config: ConfigService,
     ) {
         hotkeys.hotkey$.subscribe(hotkey => {
@@ -35,7 +34,7 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
                 autoTile.tile('rows')
             }
             if (hotkey === 'auto-tile-windows') {
-                hostApp.tileWindows(config.store.autoTile.preset)
+                autoTile.tileWindows(config.store.autoTile.preset)
             }
             if (hotkey === 'auto-tile-move-window') {
                 autoTile.moveActiveTabToNewWindow()
