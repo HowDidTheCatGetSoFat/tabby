@@ -1,20 +1,36 @@
 import { NgModule } from '@angular/core'
-import { CommandProvider, ConfigProvider, ConfigService, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
+import { CommonModule } from '@angular/common'
+import { FormsModule } from '@angular/forms'
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
+import TabbyCorePlugin, { CommandProvider, ConfigProvider, ConfigService, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
+import { SettingsTabProvider } from 'tabby-settings'
 
 import { AutoTileService } from './autoTile.service'
 import { AutoTileConfigProvider } from './config'
 import { AutoTileHotkeyProvider } from './hotkeys'
 import { AutoTileContextMenu } from './contextMenu'
 import { AutoTileCommandProvider } from './commandProvider'
+import { AutoTileSettingsTabProvider } from './settings'
+import { AutoTileSettingsTabComponent } from './settingsTab.component'
 import { ButtonProvider } from './buttonProvider'
 
 @NgModule({
+    imports: [
+        CommonModule,
+        FormsModule,
+        NgbModule,
+        TabbyCorePlugin,
+    ],
     providers: [
         { provide: ToolbarButtonProvider, useClass: ButtonProvider, multi: true },
         { provide: ConfigProvider, useClass: AutoTileConfigProvider, multi: true },
         { provide: HotkeyProvider, useClass: AutoTileHotkeyProvider, multi: true },
         { provide: TabContextMenuItemProvider, useClass: AutoTileContextMenu, multi: true },
         { provide: CommandProvider, useClass: AutoTileCommandProvider, multi: true },
+        { provide: SettingsTabProvider, useClass: AutoTileSettingsTabProvider, multi: true },
+    ],
+    declarations: [
+        AutoTileSettingsTabComponent,
     ],
 })
 export default class AutoTileModule { // eslint-disable-line @typescript-eslint/no-extraneous-class
