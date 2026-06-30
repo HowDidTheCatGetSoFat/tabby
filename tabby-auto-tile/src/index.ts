@@ -1,10 +1,11 @@
 import { NgModule } from '@angular/core'
-import { ConfigProvider, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
+import { CommandProvider, ConfigProvider, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
 
 import { AutoTileService } from './autoTile.service'
 import { AutoTileConfigProvider } from './config'
 import { AutoTileHotkeyProvider } from './hotkeys'
 import { AutoTileContextMenu } from './contextMenu'
+import { AutoTileCommandProvider } from './commandProvider'
 import { ButtonProvider } from './buttonProvider'
 
 @NgModule({
@@ -13,6 +14,7 @@ import { ButtonProvider } from './buttonProvider'
         { provide: ConfigProvider, useClass: AutoTileConfigProvider, multi: true },
         { provide: HotkeyProvider, useClass: AutoTileHotkeyProvider, multi: true },
         { provide: TabContextMenuItemProvider, useClass: AutoTileContextMenu, multi: true },
+        { provide: CommandProvider, useClass: AutoTileCommandProvider, multi: true },
     ],
 })
 export default class AutoTileModule { // eslint-disable-line @typescript-eslint/no-extraneous-class

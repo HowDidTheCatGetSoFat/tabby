@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import { debounceTime } from 'rxjs'
-import { AppService, BaseTabComponent, ConfigService, SplitTabComponent } from 'tabby-core'
+import { AppService, BaseTabComponent, ConfigService, PartialProfile, Profile, ProfilesService, SplitTabComponent } from 'tabby-core'
 
 import { TilePreset, tilingStride } from './layout'
 
@@ -11,6 +11,7 @@ export class AutoTileService {
     constructor (
         private app: AppService,
         private config: ConfigService,
+        private profiles: ProfilesService,
     ) {
         this.app.tabsChanged$.pipe(debounceTime(250)).subscribe(() => {
             const leaves = this.currentLeaves()
@@ -34,7 +35,6 @@ export class AutoTileService {
         }
 
         this.lastLeaves = new Set(this.currentLeaves())
-
         this.app.explodeTab(into)
 
         const children: BaseTabComponent[] = []
@@ -49,7 +49,37 @@ export class AutoTileService {
             }
         }
 
-        // `explodeTab` keeps the first pane inside `into`, so it counts too
+        this.arrange(into, children, preset)
+    }
+
+    async openGroupTiled (profiles: PartialProfile<Profile>[], preset: TilePreset): Promise<void> {
+        const opened: BaseTabComponent[] = []
+        for (const profile of profiles) {
+            const tab = await this.profiles.openNewTabForProfile(profile)
+            if (tab) {
+                opened.push(tab)
+            }
+        }
+
+        const into = opened[0]
+        if (!(into instanceof SplitTabComponent)) {
+            return
+        }
+
+        const children: BaseTabComponent[] = []
+        for (const tab of opened.slice(1)) {
+            if (tab instanceof SplitTabComponent) {
+                children.push(...tab.getAllTabs())
+            } else {
+                children.push(tab)
+            }
+        }
+
+        this.arrange(into, children, preset)
+    }
+
+    private arrange (into: SplitTabComponent, children: BaseTabComponent[], preset: TilePreset): void {
+        // `into` keeps one pane already, so it counts towards the layout
         const stride = tilingStride(children.length + 1, preset)
         let column = 1
         let previous: BaseTabComponent|null = null
