@@ -84,6 +84,15 @@ export abstract class BaseSession {
         this.binaryOutput.complete()
     }
 
+    /**
+     * Detaches from the session without ending it. The default implementation
+     * destroys it; override when the backing process can outlive the tab
+     * (e.g. a local PTY that lives in the main process and can be reattached).
+     */
+    async detach (): Promise<void> {
+        return this.destroy()
+    }
+
     abstract start (options: unknown): Promise<void>
     abstract resize (columns: number, rows: number): void
     abstract write (data: Buffer): void

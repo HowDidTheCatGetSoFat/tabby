@@ -37,6 +37,9 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
             if (hotkey === 'auto-tile-windows') {
                 hostApp.tileWindows(config.store.autoTile.preset)
             }
+            if (hotkey === 'auto-tile-move-window') {
+                autoTile.moveActiveTabToNewWindow()
+            }
         })
     }
 }

@@ -35,6 +35,13 @@ export class AutoTileCommandProvider extends CommandProvider {
                 icon: gridIcon,
                 run: async () => this.hostApp.tileWindows(this.config.store.autoTile.preset),
             },
+            {
+                id: 'auto-tile:move-window',
+                locations: [CommandLocation.StartPage],
+                label: this.translate.instant('Move tab to new window'),
+                icon: gridIcon,
+                run: async () => this.autoTile.moveActiveTabToNewWindow(),
+            },
         ]
     }
 

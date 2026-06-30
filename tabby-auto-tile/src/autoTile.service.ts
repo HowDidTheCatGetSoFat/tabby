@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core'
 import { debounceTime } from 'rxjs'
-import { AppService, BaseTabComponent, ConfigService, PartialProfile, Profile, ProfilesService, SplitTabComponent } from 'tabby-core'
+import { AppService, BaseTabComponent, ConfigService, HostAppService, PartialProfile, Profile, ProfilesService, SplitTabComponent, TabRecoveryService } from 'tabby-core'
+import { BaseTerminalTabComponent } from 'tabby-terminal'
 
 import { TilePreset, tilingStride } from './layout'
 
@@ -12,6 +13,8 @@ export class AutoTileService {
         private app: AppService,
         private config: ConfigService,
         private profiles: ProfilesService,
+        private tabRecovery: TabRecoveryService,
+        private hostApp: HostAppService,
     ) {
         this.app.tabsChanged$.pipe(debounceTime(250)).subscribe(() => {
             const leaves = this.currentLeaves()
@@ -76,6 +79,32 @@ export class AutoTileService {
         }
 
         this.arrange(into, children, preset)
+    }
+
+    async moveTabToNewWindow (tab: BaseTabComponent): Promise<void> {
+        const top = this.app.tabs.includes(tab) ? tab : this.app.getParentTab(tab)
+        if (!top || this.app.tabs.length < 2) {
+            return
+        }
+        const token = await this.tabRecovery.getFullRecoveryToken(top, { includeState: true })
+        if (!token) {
+            return
+        }
+        const leaves = top instanceof SplitTabComponent ? top.getAllTabs() : [top]
+        for (const leaf of leaves) {
+            if (leaf instanceof BaseTerminalTabComponent) {
+                await leaf.releaseSession()
+            }
+        }
+        this.app.closeTab(top, false)
+        this.hostApp.openTabInNewWindow(token)
+    }
+
+    moveActiveTabToNewWindow (): void {
+        const tab = this.app.activeTab
+        if (tab) {
+            void this.moveTabToNewWindow(tab)
+        }
     }
 
     private arrange (into: SplitTabComponent, children: BaseTabComponent[], preset: TilePreset): void {

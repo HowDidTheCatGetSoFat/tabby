@@ -15,7 +15,7 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
         super()
     }
 
-    async getItems (_tab: BaseTabComponent): Promise<MenuItemOptions[]> {
+    async getItems (tab: BaseTabComponent): Promise<MenuItemOptions[]> {
         const presets: { preset: TilePreset, label: string }[] = [
             { preset: 'grid', label: this.translate.instant('Grid') },
             { preset: 'columns', label: this.translate.instant('Columns') },
@@ -49,6 +49,12 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                     if (enabled) {
                         this.autoTile.tile(this.config.store.autoTile.preset)
                     }
+                },
+            },
+            {
+                label: this.translate.instant('Move to new window'),
+                click: () => {
+                    void this.autoTile.moveTabToNewWindow(tab)
                 },
             },
         ]

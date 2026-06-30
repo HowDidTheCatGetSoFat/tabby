@@ -168,6 +168,22 @@ export class Session extends BaseSession {
         this.pty?.kill(signal)
     }
 
+    async detach (): Promise<void> {
+        // Unlike destroy(), this leaves the PTY process running in the main
+        // process so another window can reattach to it by id. Emitting
+        // destroyed$ runs the unsubscribeAll() wired in start().
+        if (this.open) {
+            this.open = false
+            this.closed.next()
+            this.destroyed.next()
+        }
+        this.middleware.close()
+        this.closed.complete()
+        this.destroyed.complete()
+        this.output.complete()
+        this.binaryOutput.complete()
+    }
+
     async getChildProcesses (): Promise<ChildProcess[]> {
         return this.pty?.getChildProcesses() ?? []
     }

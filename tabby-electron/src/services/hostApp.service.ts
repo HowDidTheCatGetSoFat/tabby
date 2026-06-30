@@ -1,5 +1,5 @@
 import { Injectable, NgZone, Injector } from '@angular/core'
-import { isWindowsBuild, WIN_BUILD_FLUENT_BG_SUPPORTED, HostAppService, Platform, CLIHandler } from 'tabby-core'
+import { isWindowsBuild, WIN_BUILD_FLUENT_BG_SUPPORTED, HostAppService, Platform, CLIHandler, AppService, TabRecoveryService } from 'tabby-core'
 import { ElectronService } from '../services/electron.service'
 
 
@@ -25,6 +25,13 @@ export class ElectronHostAppService extends HostAppService {
         super(injector)
 
         electron.ipcRenderer.on('host:preferences-menu', () => this.zone.run(() => this.settingsUIRequest.next()))
+
+        electron.ipcRenderer.on('host:open-tab', (_$event, token: any) => this.zone.run(async () => {
+            const params = await injector.get(TabRecoveryService).recoverTab(token)
+            if (params) {
+                injector.get(AppService).openNewTabRaw(params)
+            }
+        }))
 
         electron.ipcRenderer.on('cli', (_$event, argv: any, cwd: string, secondInstance: boolean) => this.zone.run(async () => {
             const event = { argv, cwd, secondInstance }
@@ -60,6 +67,10 @@ export class ElectronHostAppService extends HostAppService {
 
     tileWindows (preset?: string): void {
         this.electron.ipcRenderer.send('app:tile-windows', preset)
+    }
+
+    openTabInNewWindow (recoveryToken: unknown): void {
+        this.electron.ipcRenderer.send('app:new-window-with-tab', recoveryToken)
     }
 
     async saveConfig (data: string): Promise<void> {

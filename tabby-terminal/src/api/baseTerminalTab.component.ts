@@ -772,6 +772,16 @@ export class BaseTerminalTabComponent<P extends BaseTerminalProfile> extends Bas
         this.sessionChanged.next(session)
     }
 
+    /**
+     * Detaches the session from this tab without ending it, so the tab can be
+     * closed and the session reattached elsewhere (e.g. moved to a new window).
+     */
+    async releaseSession (): Promise<void> {
+        const session = this.session
+        this.setSession(null)
+        await session?.detach()
+    }
+
     showToolbar (): void {
         this.revealToolbar = true
         this.toolbarRevealTimeout.clear()

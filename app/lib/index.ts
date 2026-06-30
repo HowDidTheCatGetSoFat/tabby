@@ -52,6 +52,11 @@ ipcMain.on('app:tile-windows', (_event, preset) => {
     application.tileWindows(preset)
 })
 
+ipcMain.on('app:new-window-with-tab', async (_event, token) => {
+    const window = await application.newWindow()
+    window.send('host:open-tab', token)
+})
+
 process.on('uncaughtException' as any, err => {
     console.log(err)
     application.broadcast('uncaughtException', err)

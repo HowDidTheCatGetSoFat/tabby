@@ -21,6 +21,10 @@ export class AutoTileHotkeyProvider extends HotkeyProvider {
             id: 'auto-tile-windows',
             name: this.translate.instant('Tile windows'),
         },
+        {
+            id: 'auto-tile-move-window',
+            name: this.translate.instant('Move tab to new window'),
+        },
     ]
 
     constructor (private translate: TranslateService) { super() }
