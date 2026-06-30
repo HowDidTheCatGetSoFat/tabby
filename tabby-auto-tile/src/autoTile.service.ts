@@ -1,9 +1,9 @@
 import { Injectable, NgZone } from '@angular/core'
-import { ipcRenderer } from 'electron'
 import { debounceTime } from 'rxjs'
 import { AppService, BaseTabComponent, ConfigService, NotificationsService, PartialProfile, Profile, ProfilesService, SelectorService, SplitContainer, SplitTabComponent, TabRecoveryService, TranslateService } from 'tabby-core'
 import { BaseTerminalTabComponent } from 'tabby-terminal'
 
+import { ipcRenderer } from './ipc'
 import { TilePreset, tilingStride } from './layout'
 
 @Injectable({ providedIn: 'root' })
@@ -80,8 +80,8 @@ export class AutoTileService {
     }
 
     async switchWindow (): Promise<void> {
-        const windows = (await ipcRenderer.invoke('app:list-windows')) as { id: number, title: string, current: boolean }[]
-        if (windows.length < 2) {
+        const windows = (await ipcRenderer.invoke('app:list-windows')) as { id: number, title: string, current: boolean }[] | undefined
+        if (!windows || windows.length < 2) {
             return
         }
         const options = windows.map(w => ({
