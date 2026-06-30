@@ -18,6 +18,10 @@ export class AutoTileHotkeyProvider extends HotkeyProvider {
             name: this.translate.instant('Tile tabs in rows'),
         },
         {
+            id: 'auto-tile-master',
+            name: this.translate.instant('Tile tabs as master and stack'),
+        },
+        {
             id: 'auto-tile-windows',
             name: this.translate.instant('Tile windows'),
         },

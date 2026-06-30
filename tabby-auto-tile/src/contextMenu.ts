@@ -20,6 +20,7 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
             { preset: 'grid', label: this.translate.instant('Grid') },
             { preset: 'columns', label: this.translate.instant('Columns') },
             { preset: 'rows', label: this.translate.instant('Rows') },
+            { preset: 'master', label: this.translate.instant('Master stack') },
         ]
         return [
             {

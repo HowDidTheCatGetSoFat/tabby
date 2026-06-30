@@ -13,6 +13,7 @@ export class AutoTileConfigProvider extends ConfigProvider {
             'auto-tile-grid': [],
             'auto-tile-columns': [],
             'auto-tile-rows': [],
+            'auto-tile-master': [],
             'auto-tile-windows': [],
             'auto-tile-move-window': [],
             'auto-tile-cascade-windows': [],

@@ -33,6 +33,9 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
             if (hotkey === 'auto-tile-rows') {
                 autoTile.tile('rows')
             }
+            if (hotkey === 'auto-tile-master') {
+                autoTile.tile('master')
+            }
             if (hotkey === 'auto-tile-windows') {
                 autoTile.tileWindows(config.store.autoTile.preset)
             }

@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { debounceTime } from 'rxjs'
-import { AppService, BaseTabComponent, ConfigService, NotificationsService, PartialProfile, Profile, ProfilesService, SelectorService, SplitTabComponent, TabRecoveryService, TranslateService } from 'tabby-core'
+import { AppService, BaseTabComponent, ConfigService, NotificationsService, PartialProfile, Profile, ProfilesService, SelectorService, SplitContainer, SplitTabComponent, TabRecoveryService, TranslateService } from 'tabby-core'
 import { BaseTerminalTabComponent } from 'tabby-terminal'
 
 import { TilePreset, tilingStride } from './layout'
@@ -201,6 +201,10 @@ export class AutoTileService {
     }
 
     private arrange (into: SplitTabComponent, children: BaseTabComponent[], preset: TilePreset): void {
+        if (preset === 'master') {
+            void this.arrangeMasterStack(into, children)
+            return
+        }
         // `into` keeps one pane already, so it counts towards the layout
         const stride = tilingStride(children.length + 1, preset)
         let column = 1
@@ -212,6 +216,24 @@ export class AutoTileService {
         }
 
         into.equalize()
+        this.app.selectTab(into)
+    }
+
+    private async arrangeMasterStack (into: SplitTabComponent, children: BaseTabComponent[]): Promise<void> {
+        // The pane already in `into` is the master; stack the rest beside it.
+        let previous: BaseTabComponent|null = null
+        for (const child of children) {
+            await into.add(child, previous, previous ? 'b' : 'r')
+            previous = child
+        }
+        if (into.root.children.length === 2) {
+            into.root.ratios = [0.62, 0.38]
+            const stack = into.root.children[1]
+            if (stack instanceof SplitContainer) {
+                stack.ratios = stack.children.map(() => 1 / stack.children.length)
+            }
+        }
+        into.layout()
         this.app.selectTab(into)
     }
 

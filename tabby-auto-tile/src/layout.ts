@@ -1,4 +1,4 @@
-export type TilePreset = 'grid' | 'columns' | 'rows'
+export type TilePreset = 'grid' | 'columns' | 'rows' | 'master'
 
 /**
  * Returns the column stride used to walk the tabs while tiling.
