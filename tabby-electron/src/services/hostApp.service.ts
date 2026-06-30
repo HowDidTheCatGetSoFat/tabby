@@ -58,8 +58,8 @@ export class ElectronHostAppService extends HostAppService {
         this.electron.ipcRenderer.send('app:new-window')
     }
 
-    tileWindows (): void {
-        this.electron.ipcRenderer.send('app:tile-windows')
+    tileWindows (preset?: string): void {
+        this.electron.ipcRenderer.send('app:tile-windows', preset)
     }
 
     async saveConfig (data: string): Promise<void> {

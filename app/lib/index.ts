@@ -48,8 +48,8 @@ ipcMain.on('app:new-window', () => {
     application.newWindow()
 })
 
-ipcMain.on('app:tile-windows', () => {
-    application.tileWindows()
+ipcMain.on('app:tile-windows', (_event, preset) => {
+    application.tileWindows(preset)
 })
 
 process.on('uncaughtException' as any, err => {

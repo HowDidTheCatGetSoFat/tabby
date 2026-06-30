@@ -166,7 +166,7 @@ export class Application {
         }
     }
 
-    tileWindows (): void {
+    tileWindows (preset?: string): void {
         const windows = this.windows.filter(w => !w.isDestroyed() && w.isVisible())
         if (windows.length < 2) {
             return
@@ -174,7 +174,12 @@ export class Application {
         const focused = windows.find(w => w.isFocused()) ?? windows[0]
         const focusedBounds = focused.getBounds()
         const area = (focusedBounds ? screen.getDisplayMatching(focusedBounds) : screen.getPrimaryDisplay()).workArea
-        const columns = Math.ceil(Math.sqrt(windows.length))
+        let columns = Math.ceil(Math.sqrt(windows.length))
+        if (preset === 'columns') {
+            columns = windows.length
+        } else if (preset === 'rows') {
+            columns = 1
+        }
         const rows = Math.ceil(windows.length / columns)
         windows.forEach((window, index) => {
             const column = index % columns

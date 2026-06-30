@@ -39,7 +39,7 @@ export abstract class HostAppService {
     abstract newWindow (): void
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    tileWindows (): void { }
+    tileWindows (_preset?: string): void { }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     emitReady (): void { }

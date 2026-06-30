@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core'
-import { CommandProvider, ConfigProvider, HostAppService, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
+import { CommandProvider, ConfigProvider, ConfigService, HostAppService, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
 
 import { AutoTileService } from './autoTile.service'
 import { AutoTileConfigProvider } from './config'
@@ -22,6 +22,7 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
         hotkeys: HotkeysService,
         autoTile: AutoTileService,
         hostApp: HostAppService,
+        config: ConfigService,
     ) {
         hotkeys.hotkey$.subscribe(hotkey => {
             if (hotkey === 'auto-tile-grid') {
@@ -34,7 +35,7 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
                 autoTile.tile('rows')
             }
             if (hotkey === 'auto-tile-windows') {
-                hostApp.tileWindows()
+                hostApp.tileWindows(config.store.autoTile.preset)
             }
         })
     }

@@ -30,6 +30,15 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                 })) as MenuItemOptions[],
             },
             {
+                label: this.translate.instant('Auto-tile layout'),
+                submenu: presets.map(p => ({
+                    label: p.label,
+                    type: 'radio',
+                    checked: this.config.store.autoTile.preset === p.preset,
+                    click: () => this.setPreset(p.preset),
+                })) as MenuItemOptions[],
+            },
+            {
                 label: this.translate.instant('Auto-tile on changes'),
                 type: 'checkbox',
                 checked: this.config.store.autoTile.rearrangeOnChange,
@@ -43,5 +52,10 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                 },
             },
         ]
+    }
+
+    private setPreset (preset: TilePreset): void {
+        this.config.store.autoTile.preset = preset
+        this.config.save()
     }
 }

@@ -33,7 +33,7 @@ export class AutoTileCommandProvider extends CommandProvider {
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Tile windows'),
                 icon: gridIcon,
-                run: async () => this.hostApp.tileWindows(),
+                run: async () => this.hostApp.tileWindows(this.config.store.autoTile.preset),
             },
         ]
     }
