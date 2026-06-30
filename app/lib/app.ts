@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu, Tray, shell, screen, globalShortcut, MenuItemConstructorOptions, WebContents } from 'electron'
+import { app, ipcMain, Menu, Tray, shell, screen, globalShortcut, MenuItemConstructorOptions, WebContents, Rectangle } from 'electron'
 import promiseIpc from 'electron-promise-ipc'
 import * as remote from '@electron/remote/main'
 import { spawnSync } from 'child_process'
@@ -166,31 +166,45 @@ export class Application {
         }
     }
 
-    tileWindows (preset?: string): void {
+    tileWindows (preset?: string, acrossMonitors?: boolean): void {
         const windows = this.windows.filter(w => !w.isDestroyed() && w.isVisible())
         if (windows.length < 2) {
             return
         }
-        const focused = windows.find(w => w.isFocused()) ?? windows[0]
-        const focusedBounds = focused.getBounds()
-        const area = (focusedBounds ? screen.getDisplayMatching(focusedBounds) : screen.getPrimaryDisplay()).workArea
-        let columns = Math.ceil(Math.sqrt(windows.length))
-        if (preset === 'columns') {
-            columns = windows.length
-        } else if (preset === 'rows') {
-            columns = 1
-        }
-        const rows = Math.ceil(windows.length / columns)
-        windows.forEach((window, index) => {
-            const column = index % columns
-            const row = Math.floor(index / columns)
-            window.setBounds({
-                x: Math.round(area.x + column * area.width / columns),
-                y: Math.round(area.y + row * area.height / rows),
-                width: Math.round(area.width / columns),
-                height: Math.round(area.height / rows),
+        const groups: { windows: Window[], area: Rectangle }[] = []
+        if (acrossMonitors) {
+            const displays = screen.getAllDisplays()
+            displays.forEach((display, di) => {
+                groups.push({ windows: windows.filter((_, wi) => wi % displays.length === di), area: display.workArea })
             })
-        })
+        } else {
+            const focused = windows.find(w => w.isFocused()) ?? windows[0]
+            const focusedBounds = focused.getBounds()
+            groups.push({ windows, area: (focusedBounds ? screen.getDisplayMatching(focusedBounds) : screen.getPrimaryDisplay()).workArea })
+        }
+        for (const group of groups) {
+            const groupWindows = group.windows
+            if (groupWindows.length === 0) {
+                continue
+            }
+            let columns = Math.ceil(Math.sqrt(groupWindows.length))
+            if (preset === 'columns') {
+                columns = groupWindows.length
+            } else if (preset === 'rows') {
+                columns = 1
+            }
+            const rows = Math.ceil(groupWindows.length / columns)
+            groupWindows.forEach((window, index) => {
+                const column = index % columns
+                const row = Math.floor(index / columns)
+                window.setBounds({
+                    x: Math.round(group.area.x + column * group.area.width / columns),
+                    y: Math.round(group.area.y + row * group.area.height / rows),
+                    width: Math.round(group.area.width / columns),
+                    height: Math.round(group.area.height / rows),
+                })
+            })
+        }
     }
 
     cascadeWindows (): void {

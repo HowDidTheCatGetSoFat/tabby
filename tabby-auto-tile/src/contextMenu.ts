@@ -61,6 +61,15 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                 },
             },
             {
+                label: this.translate.instant('Tile windows across all monitors'),
+                type: 'checkbox',
+                checked: this.config.store.autoTile.tileAcrossMonitors,
+                click: () => {
+                    this.config.store.autoTile.tileAcrossMonitors = !this.config.store.autoTile.tileAcrossMonitors
+                    this.config.save()
+                },
+            },
+            {
                 label: this.translate.instant('Move to new window'),
                 click: () => {
                     void this.autoTile.moveTabToNewWindow(tab)

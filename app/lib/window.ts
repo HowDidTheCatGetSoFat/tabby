@@ -496,6 +496,9 @@ export class Window {
         if (this.window?.isMaximized()) {
             this.window.unmaximize()
         }
+        if (this.window?.isFullScreen()) {
+            this.window.setFullScreen(false)
+        }
         this.window?.setBounds(bounds)
     }
 

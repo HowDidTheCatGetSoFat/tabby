@@ -64,7 +64,7 @@ export class AutoTileService {
     }
 
     tileWindows (preset: TilePreset): void {
-        ipcRenderer.send('app:tile-windows', preset)
+        ipcRenderer.send('app:tile-windows', preset, this.config.store.autoTile.tileAcrossMonitors)
     }
 
     cascadeWindows (): void {

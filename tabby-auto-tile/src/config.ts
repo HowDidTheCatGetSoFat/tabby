@@ -6,6 +6,7 @@ export class AutoTileConfigProvider extends ConfigProvider {
         autoTile: {
             rearrangeOnChange: false,
             tileWindowsOnMove: false,
+            tileAcrossMonitors: false,
             preset: 'grid',
         },
         hotkeys: {

@@ -48,8 +48,8 @@ ipcMain.on('app:new-window', () => {
     application.newWindow()
 })
 
-ipcMain.on('app:tile-windows', (_event, preset) => {
-    application.tileWindows(preset)
+ipcMain.on('app:tile-windows', (_event, preset, acrossMonitors) => {
+    application.tileWindows(preset, acrossMonitors)
 })
 
 ipcMain.on('app:cascade-windows', () => {
