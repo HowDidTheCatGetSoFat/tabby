@@ -48,6 +48,9 @@ export default class AutoTileModule { // eslint-disable-line @typescript-eslint/
             if (hotkey === 'auto-tile-close-other-windows') {
                 autoTile.closeOtherWindows()
             }
+            if (hotkey === 'auto-tile-gather-windows') {
+                autoTile.gatherWindows()
+            }
         })
     }
 }

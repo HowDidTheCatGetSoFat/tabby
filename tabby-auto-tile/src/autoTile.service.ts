@@ -41,6 +41,26 @@ export class AutoTileService {
                 this.app.openNewTab(params)
             }
         }))
+
+        // Gather: export this window's tabs to a target window, keeping local
+        // PTYs alive, then let the main process close this window.
+        ipcRenderer.on('host:export-tabs', (_event, targetId) => this.zone.run(async () => {
+            const tokens: unknown[] = []
+            for (const tab of [...this.app.tabs]) {
+                const token = await this.tabRecovery.getFullRecoveryToken(tab, { includeState: true })
+                if (!token) {
+                    continue
+                }
+                const leaves = tab instanceof SplitTabComponent ? tab.getAllTabs() : [tab]
+                for (const leaf of leaves) {
+                    if (leaf instanceof BaseTerminalTabComponent) {
+                        await leaf.releaseSession()
+                    }
+                }
+                tokens.push(JSON.parse(JSON.stringify(token)))
+            }
+            ipcRenderer.send('app:relay-tabs', { targetId, tokens })
+        }))
     }
 
     tileWindows (preset: TilePreset): void {
@@ -53,6 +73,10 @@ export class AutoTileService {
 
     closeOtherWindows (): void {
         ipcRenderer.send('app:close-other-windows')
+    }
+
+    gatherWindows (): void {
+        ipcRenderer.send('app:gather-windows')
     }
 
     async switchWindow (): Promise<void> {

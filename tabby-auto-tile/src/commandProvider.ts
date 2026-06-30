@@ -62,6 +62,13 @@ export class AutoTileCommandProvider extends CommandProvider {
                 icon: gridIcon,
                 run: async () => this.autoTile.closeOtherWindows(),
             },
+            {
+                id: 'auto-tile:gather-windows',
+                locations: [CommandLocation.StartPage],
+                label: this.translate.instant('Gather all windows into this one'),
+                icon: gridIcon,
+                run: async () => this.autoTile.gatherWindows(),
+            },
         ]
     }
 

@@ -91,6 +91,10 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                         label: this.translate.instant('Close other windows'),
                         click: () => this.autoTile.closeOtherWindows(),
                     },
+                    {
+                        label: this.translate.instant('Gather all windows here'),
+                        click: () => this.autoTile.gatherWindows(),
+                    },
                 ] as MenuItemOptions[],
             },
         ]

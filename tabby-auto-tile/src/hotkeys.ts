@@ -37,6 +37,10 @@ export class AutoTileHotkeyProvider extends HotkeyProvider {
             id: 'auto-tile-close-other-windows',
             name: this.translate.instant('Close other windows'),
         },
+        {
+            id: 'auto-tile-gather-windows',
+            name: this.translate.instant('Gather all windows into this one'),
+        },
     ]
 
     constructor (private translate: TranslateService) { super() }

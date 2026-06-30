@@ -68,6 +68,14 @@ ipcMain.on('app:close-other-windows', event => {
     application.closeOtherWindows(event.sender)
 })
 
+ipcMain.on('app:gather-windows', event => {
+    application.gatherWindows(event.sender)
+})
+
+ipcMain.on('app:relay-tabs', (event, payload) => {
+    application.relayTabs(payload.targetId, payload.tokens, event.sender)
+})
+
 ipcMain.on('app:new-window-with-tab', async (_event, payload) => {
     const window = await application.newWindow()
     window.send('host:open-tab', payload.token)

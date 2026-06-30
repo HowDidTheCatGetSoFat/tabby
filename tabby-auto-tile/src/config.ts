@@ -17,6 +17,7 @@ export class AutoTileConfigProvider extends ConfigProvider {
             'auto-tile-cascade-windows': [],
             'auto-tile-window-switcher': [],
             'auto-tile-close-other-windows': [],
+            'auto-tile-gather-windows': [],
         },
     }
 

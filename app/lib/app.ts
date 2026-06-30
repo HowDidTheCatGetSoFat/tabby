@@ -233,6 +233,26 @@ export class Application {
         }
     }
 
+    gatherWindows (sender: WebContents): void {
+        const targetId = this.windows.find(w => w.webContents.id === sender.id)?.getId()
+        if (targetId === undefined) {
+            return
+        }
+        for (const window of this.windows.filter(w => w.webContents.id !== sender.id && !w.isDestroyed())) {
+            window.send('host:export-tabs', targetId)
+        }
+    }
+
+    relayTabs (targetId: number, tokens: unknown[], sender: WebContents): void {
+        const target = this.windows.find(w => w.getId() === targetId)
+        if (target) {
+            for (const token of tokens) {
+                target.send('host:open-tab', token)
+            }
+        }
+        this.windows.find(w => w.webContents.id === sender.id)?.close()
+    }
+
     broadcast (event: string, ...args: any[]): void {
         for (const window of this.windows) {
             window.send(event, ...args)
