@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core'
 import { debounceTime } from 'rxjs'
-import { AppService, BaseTabComponent, ConfigService, HostAppService, PartialProfile, Profile, ProfilesService, SplitTabComponent, TabRecoveryService } from 'tabby-core'
+import { AppService, BaseTabComponent, ConfigService, HostAppService, NotificationsService, PartialProfile, Profile, ProfilesService, SplitTabComponent, TabRecoveryService } from 'tabby-core'
 import { BaseTerminalTabComponent } from 'tabby-terminal'
 
 import { TilePreset, tilingStride } from './layout'
@@ -15,6 +15,7 @@ export class AutoTileService {
         private profiles: ProfilesService,
         private tabRecovery: TabRecoveryService,
         private hostApp: HostAppService,
+        private notifications: NotificationsService,
     ) {
         this.app.tabsChanged$.pipe(debounceTime(250)).subscribe(() => {
             const leaves = this.currentLeaves()
@@ -83,21 +84,31 @@ export class AutoTileService {
 
     async moveTabToNewWindow (tab: BaseTabComponent): Promise<void> {
         const top = this.app.tabs.includes(tab) ? tab : this.app.getParentTab(tab)
-        if (!top || this.app.tabs.length < 2) {
+        if (!top) {
             return
         }
-        const token = await this.tabRecovery.getFullRecoveryToken(top, { includeState: true })
-        if (!token) {
+        if (this.app.tabs.length < 2) {
+            this.notifications.error('Open another tab before moving this one to a new window')
             return
         }
-        const leaves = top instanceof SplitTabComponent ? top.getAllTabs() : [top]
-        for (const leaf of leaves) {
-            if (leaf instanceof BaseTerminalTabComponent) {
-                await leaf.releaseSession()
+        try {
+            const token = await this.tabRecovery.getFullRecoveryToken(top, { includeState: true })
+            if (!token) {
+                this.notifications.error('This tab cannot be moved to a new window')
+                return
             }
+            const leaves = top instanceof SplitTabComponent ? top.getAllTabs() : [top]
+            for (const leaf of leaves) {
+                if (leaf instanceof BaseTerminalTabComponent) {
+                    await leaf.releaseSession()
+                }
+            }
+            this.app.closeTab(top, false)
+            this.hostApp.openTabInNewWindow(token)
+        } catch (error) {
+            this.notifications.error('Could not move the tab to a new window')
+            console.error('auto-tile: move to new window failed', error)
         }
-        this.app.closeTab(top, false)
-        this.hostApp.openTabInNewWindow(token)
     }
 
     moveActiveTabToNewWindow (): void {
