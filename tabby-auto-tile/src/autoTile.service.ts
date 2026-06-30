@@ -106,10 +106,10 @@ export class AutoTileService {
             if (tab === into) {
                 continue
             }
+            // Only tile terminal panes; leave special tabs (Settings, the
+            // welcome page, etc.) as their own top-level tabs.
             if (tab instanceof SplitTabComponent) {
                 children.push(...tab.getAllTabs())
-            } else {
-                children.push(tab)
             }
         }
 
@@ -238,12 +238,12 @@ export class AutoTileService {
     }
 
     private currentLeaves (): BaseTabComponent[] {
+        // Only terminal panes count; special tabs (Settings, etc.) are ignored
+        // so opening or closing them never triggers an auto re-tile.
         const leaves: BaseTabComponent[] = []
         for (const tab of this.app.tabs) {
             if (tab instanceof SplitTabComponent) {
                 leaves.push(...tab.getAllTabs())
-            } else {
-                leaves.push(tab)
             }
         }
         return leaves
