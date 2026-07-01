@@ -3,46 +3,46 @@ import { HotkeyDescription, HotkeyProvider, TranslateService } from 'tabby-core'
 
 /** @hidden */
 @Injectable()
-export class AutoTileHotkeyProvider extends HotkeyProvider {
+export class MosaicHotkeyProvider extends HotkeyProvider {
     hotkeys: HotkeyDescription[] = [
         {
-            id: 'auto-tile-grid',
+            id: 'mosaic-grid',
             name: this.translate.instant('Tile tabs in a grid'),
         },
         {
-            id: 'auto-tile-columns',
+            id: 'mosaic-columns',
             name: this.translate.instant('Tile tabs in columns'),
         },
         {
-            id: 'auto-tile-rows',
+            id: 'mosaic-rows',
             name: this.translate.instant('Tile tabs in rows'),
         },
         {
-            id: 'auto-tile-master',
+            id: 'mosaic-master',
             name: this.translate.instant('Tile tabs as master and stack'),
         },
         {
-            id: 'auto-tile-windows',
+            id: 'mosaic-windows',
             name: this.translate.instant('Tile windows'),
         },
         {
-            id: 'auto-tile-move-window',
+            id: 'mosaic-move-window',
             name: this.translate.instant('Move tab to new window'),
         },
         {
-            id: 'auto-tile-cascade-windows',
+            id: 'mosaic-cascade-windows',
             name: this.translate.instant('Cascade windows'),
         },
         {
-            id: 'auto-tile-window-switcher',
+            id: 'mosaic-window-switcher',
             name: this.translate.instant('Switch window'),
         },
         {
-            id: 'auto-tile-close-other-windows',
+            id: 'mosaic-close-other-windows',
             name: this.translate.instant('Close other windows'),
         },
         {
-            id: 'auto-tile-gather-windows',
+            id: 'mosaic-gather-windows',
             name: this.translate.instant('Gather all windows into this one'),
         },
     ]

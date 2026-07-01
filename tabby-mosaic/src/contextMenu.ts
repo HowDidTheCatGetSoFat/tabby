@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core'
 import { BaseTabComponent, ConfigService, MenuItemOptions, TabContextMenuItemProvider, TranslateService } from 'tabby-core'
 
-import { AutoTileService } from './autoTile.service'
+import { MosaicService } from './mosaic.service'
 import { TilePreset } from './layout'
 
 /** @hidden */
 @Injectable()
-export class AutoTileContextMenu extends TabContextMenuItemProvider {
+export class MosaicContextMenu extends TabContextMenuItemProvider {
     constructor (
-        private autoTile: AutoTileService,
+        private mosaic: MosaicService,
         private config: ConfigService,
         private translate: TranslateService,
     ) {
@@ -27,83 +27,83 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
                 label: this.translate.instant('Tile tabs'),
                 submenu: presets.map(p => ({
                     label: p.label,
-                    click: () => this.autoTile.tile(p.preset),
+                    click: () => this.mosaic.tile(p.preset),
                 })) as MenuItemOptions[],
             },
             {
-                label: this.translate.instant('Auto-tile layout'),
+                label: this.translate.instant('Default layout'),
                 submenu: presets.map(p => ({
                     label: p.label,
                     type: 'radio',
-                    checked: this.config.store.autoTile.preset === p.preset,
+                    checked: this.config.store.mosaic.preset === p.preset,
                     click: () => this.setPreset(p.preset),
                 })) as MenuItemOptions[],
             },
             {
-                label: this.translate.instant('Auto-tile on changes'),
+                label: this.translate.instant('Re-tile on tab open/close'),
                 type: 'checkbox',
-                checked: this.config.store.autoTile.rearrangeOnChange,
+                checked: this.config.store.mosaic.rearrangeOnChange,
                 click: () => {
-                    const enabled = !this.config.store.autoTile.rearrangeOnChange
-                    this.config.store.autoTile.rearrangeOnChange = enabled
+                    const enabled = !this.config.store.mosaic.rearrangeOnChange
+                    this.config.store.mosaic.rearrangeOnChange = enabled
                     this.config.save()
                     if (enabled) {
-                        this.autoTile.tile(this.config.store.autoTile.preset)
+                        this.mosaic.tile(this.config.store.mosaic.preset)
                     }
                 },
             },
             {
                 label: this.translate.instant('Tile windows after moving a tab out'),
                 type: 'checkbox',
-                checked: this.config.store.autoTile.tileWindowsOnMove,
+                checked: this.config.store.mosaic.tileWindowsOnMove,
                 click: () => {
-                    this.config.store.autoTile.tileWindowsOnMove = !this.config.store.autoTile.tileWindowsOnMove
+                    this.config.store.mosaic.tileWindowsOnMove = !this.config.store.mosaic.tileWindowsOnMove
                     this.config.save()
                 },
             },
             {
                 label: this.translate.instant('Tile windows across all monitors'),
                 type: 'checkbox',
-                checked: this.config.store.autoTile.tileAcrossMonitors,
+                checked: this.config.store.mosaic.tileAcrossMonitors,
                 click: () => {
-                    this.config.store.autoTile.tileAcrossMonitors = !this.config.store.autoTile.tileAcrossMonitors
+                    this.config.store.mosaic.tileAcrossMonitors = !this.config.store.mosaic.tileAcrossMonitors
                     this.config.save()
                 },
             },
             {
                 label: this.translate.instant('Move to new window'),
                 click: () => {
-                    void this.autoTile.moveTabToNewWindow(tab)
+                    void this.mosaic.moveTabToNewWindow(tab)
                 },
             },
             {
                 label: this.translate.instant('Untile tabs'),
-                click: () => this.autoTile.untile(tab),
+                click: () => this.mosaic.untile(tab),
             },
             {
                 label: this.translate.instant('Windows'),
                 submenu: [
                     {
                         label: this.translate.instant('Tile'),
-                        click: () => this.autoTile.tileWindows(this.config.store.autoTile.preset),
+                        click: () => this.mosaic.tileWindows(this.config.store.mosaic.preset),
                     },
                     {
                         label: this.translate.instant('Cascade'),
-                        click: () => this.autoTile.cascadeWindows(),
+                        click: () => this.mosaic.cascadeWindows(),
                     },
                     {
                         label: this.translate.instant('Switch window'),
                         click: () => {
-                            void this.autoTile.switchWindow()
+                            void this.mosaic.switchWindow()
                         },
                     },
                     {
                         label: this.translate.instant('Close other windows'),
-                        click: () => this.autoTile.closeOtherWindows(),
+                        click: () => this.mosaic.closeOtherWindows(),
                     },
                     {
                         label: this.translate.instant('Gather all windows here'),
-                        click: () => this.autoTile.gatherWindows(),
+                        click: () => this.mosaic.gatherWindows(),
                     },
                 ] as MenuItemOptions[],
             },
@@ -111,7 +111,7 @@ export class AutoTileContextMenu extends TabContextMenuItemProvider {
     }
 
     private setPreset (preset: TilePreset): void {
-        this.config.store.autoTile.preset = preset
+        this.config.store.mosaic.preset = preset
         this.config.save()
     }
 }

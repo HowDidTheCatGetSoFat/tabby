@@ -32,7 +32,7 @@ export const builtinPlugins = [
     'tabby-plugin-manager',
     'tabby-linkifier',
     'tabby-auto-sudo-password',
-    'tabby-auto-tile',
+    'tabby-mosaic',
 ]
 
 export const packagesWithDocs = [

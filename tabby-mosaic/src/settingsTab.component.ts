@@ -5,7 +5,7 @@ import { ConfigService } from 'tabby-core'
 @Component({
     templateUrl: './settingsTab.component.pug',
 })
-export class AutoTileSettingsTabComponent {
+export class MosaicSettingsTabComponent {
     @HostBinding('class.content-box') contentBox = true
 
     constructor (public config: ConfigService) { }

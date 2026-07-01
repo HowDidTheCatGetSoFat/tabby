@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core'
 import { ToolbarButtonProvider, ToolbarButton, TranslateService } from 'tabby-core'
 
-import { AutoTileService } from './autoTile.service'
+import { MosaicService } from './mosaic.service'
 import { gridIcon } from './icons'
 
 /** @hidden */
 @Injectable()
 export class ButtonProvider extends ToolbarButtonProvider {
     constructor (
-        private autoTile: AutoTileService,
+        private mosaic: MosaicService,
         private translate: TranslateService,
     ) {
         super()
@@ -20,7 +20,7 @@ export class ButtonProvider extends ToolbarButtonProvider {
                 icon: gridIcon,
                 title: this.translate.instant('Tile all tabs'),
                 weight: 5,
-                click: () => this.autoTile.tile('grid'),
+                click: () => this.mosaic.tile('grid'),
             },
         ]
     }

@@ -1,11 +1,11 @@
-h3.mb-3(translate) Auto-tile
+h3.mb-3(translate) Mosaic
 
 .form-line
     .header
         .title(translate) Default layout
         .description(translate) Layout used when tiling tabs and windows
     select.form-control.w-auto(
-        [(ngModel)]='config.store.autoTile.preset',
+        [(ngModel)]='config.store.mosaic.preset',
         (ngModelChange)='config.save()'
     )
         option(value='grid', translate) Grid
@@ -18,7 +18,7 @@ h3.mb-3(translate) Auto-tile
         .title(translate) Re-tile on tab open/close
         .description(translate) Automatically re-tile the active window when a tab is opened or closed
     toggle(
-        [(ngModel)]='config.store.autoTile.rearrangeOnChange',
+        [(ngModel)]='config.store.mosaic.rearrangeOnChange',
         (ngModelChange)='config.save()'
     )
 
@@ -27,7 +27,7 @@ h3.mb-3(translate) Auto-tile
         .title(translate) Tile windows after moving a tab out
         .description(translate) When a tab is moved to a new window, tile all windows
     toggle(
-        [(ngModel)]='config.store.autoTile.tileWindowsOnMove',
+        [(ngModel)]='config.store.mosaic.tileWindowsOnMove',
         (ngModelChange)='config.save()'
     )
 
@@ -36,6 +36,6 @@ h3.mb-3(translate) Auto-tile
         .title(translate) Tile windows across all monitors
         .description(translate) Spread windows over every display instead of just the active one
     toggle(
-        [(ngModel)]='config.store.autoTile.tileAcrossMonitors',
+        [(ngModel)]='config.store.mosaic.tileAcrossMonitors',
         (ngModelChange)='config.save()'
     )

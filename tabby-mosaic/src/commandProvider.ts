@@ -2,17 +2,17 @@
 import { Injectable } from '@angular/core'
 import { Command, CommandLocation, CommandProvider, ConfigService, ProfilesService, SelectorService, TranslateService } from 'tabby-core'
 
-import { AutoTileService } from './autoTile.service'
+import { MosaicService } from './mosaic.service'
 import { gridIcon } from './icons'
 
 /** @hidden */
 @Injectable()
-export class AutoTileCommandProvider extends CommandProvider {
+export class MosaicCommandProvider extends CommandProvider {
     constructor (
         private profiles: ProfilesService,
         private selector: SelectorService,
         private config: ConfigService,
-        private autoTile: AutoTileService,
+        private mosaic: MosaicService,
         private translate: TranslateService,
     ) {
         super()
@@ -21,53 +21,53 @@ export class AutoTileCommandProvider extends CommandProvider {
     async provide (): Promise<Command[]> {
         return [
             {
-                id: 'auto-tile:open-group',
+                id: 'mosaic:open-group',
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Open profile group tiled'),
                 icon: gridIcon,
                 run: async () => this.openGroup(),
             },
             {
-                id: 'auto-tile:tile-windows',
+                id: 'mosaic:tile-windows',
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Tile windows'),
                 icon: gridIcon,
-                run: async () => this.autoTile.tileWindows(this.config.store.autoTile.preset),
+                run: async () => this.mosaic.tileWindows(this.config.store.mosaic.preset),
             },
             {
-                id: 'auto-tile:move-window',
+                id: 'mosaic:move-window',
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Move tab to new window'),
                 icon: gridIcon,
-                run: async () => this.autoTile.moveActiveTabToNewWindow(),
+                run: async () => this.mosaic.moveActiveTabToNewWindow(),
             },
             {
-                id: 'auto-tile:cascade-windows',
+                id: 'mosaic:cascade-windows',
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Cascade windows'),
                 icon: gridIcon,
-                run: async () => this.autoTile.cascadeWindows(),
+                run: async () => this.mosaic.cascadeWindows(),
             },
             {
-                id: 'auto-tile:window-switcher',
+                id: 'mosaic:window-switcher',
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Switch window'),
                 icon: gridIcon,
-                run: async () => this.autoTile.switchWindow(),
+                run: async () => this.mosaic.switchWindow(),
             },
             {
-                id: 'auto-tile:close-other-windows',
+                id: 'mosaic:close-other-windows',
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Close other windows'),
                 icon: gridIcon,
-                run: async () => this.autoTile.closeOtherWindows(),
+                run: async () => this.mosaic.closeOtherWindows(),
             },
             {
-                id: 'auto-tile:gather-windows',
+                id: 'mosaic:gather-windows',
                 locations: [CommandLocation.StartPage],
                 label: this.translate.instant('Gather all windows into this one'),
                 icon: gridIcon,
-                run: async () => this.autoTile.gatherWindows(),
+                run: async () => this.mosaic.gatherWindows(),
             },
         ]
     }
@@ -79,7 +79,7 @@ export class AutoTileCommandProvider extends CommandProvider {
             .map(group => ({
                 name: group.name,
                 description: `${group.profiles!.length} profiles`,
-                callback: () => this.autoTile.openGroupTiled(group.profiles!, this.config.store.autoTile.preset),
+                callback: () => this.mosaic.openGroupTiled(group.profiles!, this.config.store.mosaic.preset),
             }))
         if (options.length) {
             await this.selector.show(this.translate.instant('Open profile group tiled'), options)

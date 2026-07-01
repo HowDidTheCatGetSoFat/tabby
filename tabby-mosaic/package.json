@@ -1,7 +1,7 @@
 {
-  "name": "tabby-auto-tile",
+  "name": "tabby-mosaic",
   "version": "1.0.231-nightly.0",
-  "description": "Arranges the open tabs into a tiled split layout",
+  "description": "Tile and manage Tabby tabs and windows: grids, master-stack, tear-out, cascade, window switcher and more",
   "keywords": [
     "tabby-builtin-plugin"
   ],

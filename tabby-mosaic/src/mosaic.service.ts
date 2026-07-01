@@ -7,7 +7,7 @@ import { ipcRenderer } from './ipc'
 import { TilePreset, tilingStride } from './layout'
 
 @Injectable({ providedIn: 'root' })
-export class AutoTileService {
+export class MosaicService {
     private lastLeaves = new Set<BaseTabComponent>()
 
     constructor (
@@ -29,8 +29,8 @@ export class AutoTileService {
                 return
             }
             this.lastLeaves = new Set(leaves)
-            if (this.config.store.autoTile.rearrangeOnChange && leaves.length > 1) {
-                this.tile(this.config.store.autoTile.preset)
+            if (this.config.store.mosaic.rearrangeOnChange && leaves.length > 1) {
+                this.tile(this.config.store.mosaic.preset)
             }
         })
 
@@ -64,7 +64,7 @@ export class AutoTileService {
     }
 
     tileWindows (preset: TilePreset): void {
-        ipcRenderer.send('app:tile-windows', preset, this.config.store.autoTile.tileAcrossMonitors)
+        ipcRenderer.send('app:tile-windows', preset, this.config.store.mosaic.tileAcrossMonitors)
     }
 
     cascadeWindows (): void {
@@ -192,11 +192,11 @@ export class AutoTileService {
             }
             // The token may hold config proxies that structured clone (IPC)
             // cannot serialize, so round-trip it through JSON first.
-            const tile = this.config.store.autoTile.tileWindowsOnMove ? this.config.store.autoTile.preset : null
+            const tile = this.config.store.mosaic.tileWindowsOnMove ? this.config.store.mosaic.preset : null
             ipcRenderer.send('app:new-window-with-tab', { token: JSON.parse(JSON.stringify(token)), tile })
         } catch (error) {
             this.notifications.error('Could not move the tab to a new window')
-            console.error('auto-tile: move to new window failed', error)
+            console.error('mosaic: move to new window failed', error)
         }
     }
 
