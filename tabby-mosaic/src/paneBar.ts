@@ -58,13 +58,17 @@ export class PaneBarDecorator extends TerminalDecorator {
             void tab.destroy()
         }))
         bar.appendChild(actions)
-        host.appendChild(bar)
+
+        // Insert as the first flex child of the terminal host, mirroring the
+        // built-in toolbar spacer, so revealing the bar pushes the terminal
+        // down instead of painting over its output.
+        host.insertBefore(bar, host.firstChild)
 
         const update = (): void => this.updateBar(tab, host, bar, title)
         update()
 
-        // Reveal the hover bar only near the top edge, so working inside the
-        // terminal never brings it up or lets its icons swallow clicks.
+        // In hover mode the bar only opens when the pointer is near the top
+        // edge, so working inside the terminal never nudges the layout.
         const onMove = (event: MouseEvent): void => {
             if (!bar.classList.contains('mosaic-bar-hover')) {
                 return
@@ -128,26 +132,18 @@ export class PaneBarDecorator extends TerminalDecorator {
         style.id = STYLE_ID
         style.textContent = `
             .mosaic-pane-bar {
-                box-sizing: border-box; height: ${BAR_HEIGHT}px;
+                box-sizing: border-box; flex: 0 0 auto; height: 0; overflow: hidden;
                 display: flex; align-items: center; gap: 8px; padding: 0 8px;
                 background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 12px;
                 z-index: 10;
+                transition: height var(--mosaic-bar-anim, 150ms) cubic-bezier(0.4, 0, 0.2, 1);
             }
-            .mosaic-pane-bar-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .mosaic-pane-bar-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: ${BAR_HEIGHT}px; }
             .mosaic-pane-bar-actions { display: flex; gap: 12px; }
-            .mosaic-pane-bar-icon { cursor: pointer; opacity: 0.75; }
+            .mosaic-pane-bar-icon { cursor: pointer; opacity: 0.75; line-height: ${BAR_HEIGHT}px; }
             .mosaic-pane-bar-icon:hover { opacity: 1; }
-            .mosaic-pane-bar.mosaic-bar-always {
-                position: static; order: -1; flex: 0 0 auto;
-            }
-            .mosaic-pane-bar.mosaic-bar-hover {
-                position: absolute; top: 0; left: 0; right: 0;
-                opacity: 0; pointer-events: none;
-                transition: opacity var(--mosaic-bar-anim, 150ms) ease;
-            }
-            .mosaic-pane-bar.mosaic-bar-hover.mosaic-bar-peek {
-                opacity: 1; pointer-events: auto;
-            }
+            .mosaic-pane-bar.mosaic-bar-always { height: ${BAR_HEIGHT}px; }
+            .mosaic-pane-bar.mosaic-bar-hover.mosaic-bar-peek { height: ${BAR_HEIGHT}px; }
             .mosaic-pane-bar.mosaic-bar-hidden { display: none; }
         `
         document.head.appendChild(style)
