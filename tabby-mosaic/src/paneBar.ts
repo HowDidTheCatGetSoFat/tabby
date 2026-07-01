@@ -5,10 +5,14 @@ import { TerminalDecorator, BaseTerminalTabComponent } from 'tabby-terminal'
 import { MosaicService } from './mosaic.service'
 
 const STYLE_ID = 'mosaic-pane-bar-styles'
+const BAR_HEIGHT = 24
+const PEEK_MARGIN = 4
 
 /** @hidden */
 @Injectable()
 export class PaneBarDecorator extends TerminalDecorator {
+    private listeners = new Map<BaseTerminalTabComponent<any>, () => void>()
+
     constructor (
         private config: ConfigService,
         private app: AppService,
@@ -59,6 +63,23 @@ export class PaneBarDecorator extends TerminalDecorator {
         const update = (): void => this.updateBar(tab, host, bar, title)
         update()
 
+        // Reveal the hover bar only near the top edge, so working inside the
+        // terminal never brings it up or lets its icons swallow clicks.
+        const onMove = (event: MouseEvent): void => {
+            if (!bar.classList.contains('mosaic-bar-hover')) {
+                return
+            }
+            const rect = host.getBoundingClientRect()
+            bar.classList.toggle('mosaic-bar-peek', event.clientY - rect.top <= BAR_HEIGHT + PEEK_MARGIN)
+        }
+        const onLeave = (): void => bar.classList.remove('mosaic-bar-peek')
+        host.addEventListener('mousemove', onMove)
+        host.addEventListener('mouseleave', onLeave)
+        this.listeners.set(tab, () => {
+            host.removeEventListener('mousemove', onMove)
+            host.removeEventListener('mouseleave', onLeave)
+        })
+
         this.subscribeUntilDetached(tab, tab.titleChange$.subscribe(() => update()))
         this.subscribeUntilDetached(tab, this.app.tabsChanged$.subscribe(() => update()))
         this.subscribeUntilDetached(tab, this.config.changed$.subscribe(() => update()))
@@ -66,6 +87,8 @@ export class PaneBarDecorator extends TerminalDecorator {
 
     detach (tab: BaseTerminalTabComponent<any>): void {
         super.detach(tab)
+        this.listeners.get(tab)?.()
+        this.listeners.delete(tab)
         const host = tab.element.nativeElement as HTMLElement | undefined
         host?.querySelector('.mosaic-pane-bar')?.remove()
         host?.classList.remove('mosaic-pane-host')
@@ -77,9 +100,12 @@ export class PaneBarDecorator extends TerminalDecorator {
         const parent = this.app.getParentTab(tab)
         const tiled = parent instanceof SplitTabComponent && parent.getAllTabs().length > 1
         host.style.setProperty('--mosaic-bar-anim', String(this.config.store.mosaic.paneBarAnimationMs ?? 150) + 'ms')
-        bar.classList.toggle('mosaic-bar-always', mode === 'always' && tiled)
-        bar.classList.toggle('mosaic-bar-hover', mode === 'hover' && tiled)
-        bar.classList.toggle('mosaic-bar-hidden', mode === 'off' || !tiled)
+        bar.classList.toggle('mosaic-bar-always', tiled && mode === 'always')
+        bar.classList.toggle('mosaic-bar-hover', tiled && mode === 'hover')
+        bar.classList.toggle('mosaic-bar-hidden', !tiled || mode === 'off')
+        if (mode !== 'hover' || !tiled) {
+            bar.classList.remove('mosaic-bar-peek')
+        }
     }
 
     private makeIcon (faClass: string, label: string, handler: () => void): HTMLElement {
@@ -101,21 +127,28 @@ export class PaneBarDecorator extends TerminalDecorator {
         const style = document.createElement('style')
         style.id = STYLE_ID
         style.textContent = `
-            .mosaic-pane-host { position: relative; }
             .mosaic-pane-bar {
-                position: absolute; top: 0; left: 0; right: 0; height: 24px;
+                box-sizing: border-box; height: ${BAR_HEIGHT}px;
                 display: flex; align-items: center; gap: 8px; padding: 0 8px;
                 background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 12px;
-                z-index: 10; pointer-events: none; opacity: 0;
-                transition: opacity var(--mosaic-bar-anim, 150ms) ease;
+                z-index: 10;
             }
             .mosaic-pane-bar-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .mosaic-pane-bar-actions { display: flex; gap: 12px; }
-            .mosaic-pane-bar-icon { cursor: pointer; opacity: 0.75; pointer-events: auto; }
+            .mosaic-pane-bar-icon { cursor: pointer; opacity: 0.75; }
             .mosaic-pane-bar-icon:hover { opacity: 1; }
-            .mosaic-pane-bar.mosaic-bar-always { opacity: 1; }
-            .mosaic-pane-host:hover .mosaic-pane-bar.mosaic-bar-hover { opacity: 1; }
-            .mosaic-pane-bar.mosaic-bar-hidden { opacity: 0 !important; }
+            .mosaic-pane-bar.mosaic-bar-always {
+                position: static; order: -1; flex: 0 0 auto;
+            }
+            .mosaic-pane-bar.mosaic-bar-hover {
+                position: absolute; top: 0; left: 0; right: 0;
+                opacity: 0; pointer-events: none;
+                transition: opacity var(--mosaic-bar-anim, 150ms) ease;
+            }
+            .mosaic-pane-bar.mosaic-bar-hover.mosaic-bar-peek {
+                opacity: 1; pointer-events: auto;
+            }
+            .mosaic-pane-bar.mosaic-bar-hidden { display: none; }
         `
         document.head.appendChild(style)
     }
