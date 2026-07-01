@@ -1,6 +1,6 @@
 {
   "name": "tabby-mosaic",
-  "version": "1.0.231-nightly.0",
+  "version": "1.0.0",
   "description": "Tile and manage Tabby tabs and windows: grids, master-stack, tear-out, cascade, window switcher and more",
   "keywords": [
     "tabby-plugin"
