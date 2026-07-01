@@ -18,9 +18,11 @@ export class ButtonProvider extends ToolbarButtonProvider {
         return [
             {
                 icon: gridIcon,
-                title: this.translate.instant('Tile all tabs'),
+                title: this.translate.instant('Tile tabs'),
                 weight: 5,
-                click: () => this.mosaic.tile('grid'),
+                click: () => {
+                    void this.mosaic.pickTabLayout()
+                },
             },
         ]
     }

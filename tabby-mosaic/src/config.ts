@@ -8,6 +8,8 @@ export class MosaicConfigProvider extends ConfigProvider {
             tileWindowsOnMove: false,
             tileAcrossMonitors: false,
             preset: 'grid',
+            paneBar: 'hover',
+            paneBarAnimationMs: 150,
         },
         hotkeys: {
             'mosaic-grid': [],

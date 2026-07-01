@@ -39,3 +39,26 @@ h3.mb-3(translate) Mosaic
         [(ngModel)]='config.store.mosaic.tileAcrossMonitors',
         (ngModelChange)='config.save()'
     )
+
+.form-line
+    .header
+        .title(translate) Tile title bars
+        .description(translate) Show a title bar with actions on each tile
+    select.form-control.w-auto(
+        [(ngModel)]='config.store.mosaic.paneBar',
+        (ngModelChange)='config.save()'
+    )
+        option(value='hover', translate) On hover
+        option(value='always', translate) Always
+        option(value='off', translate) Off
+
+.form-line
+    .header
+        .title(translate) Title bar animation
+        .description(translate) Fade duration of the tile title bar, in milliseconds
+    input.form-control.w-auto(
+        type='number',
+        min='0',
+        [(ngModel)]='config.store.mosaic.paneBarAnimationMs',
+        (ngModelChange)='config.save()'
+    )

@@ -116,6 +116,20 @@ export class MosaicService {
         this.arrange(into, children, preset)
     }
 
+    async pickTabLayout (): Promise<void> {
+        const presets: { preset: TilePreset, name: string }[] = [
+            { preset: 'grid', name: this.translate.instant('Grid') },
+            { preset: 'columns', name: this.translate.instant('Columns') },
+            { preset: 'rows', name: this.translate.instant('Rows') },
+            { preset: 'master', name: this.translate.instant('Master stack') },
+        ]
+        const options = presets.map(p => ({
+            name: p.name,
+            callback: () => this.tile(p.preset),
+        }))
+        await this.selector.show(this.translate.instant('Tile tabs'), options)
+    }
+
     async openGroupTiled (profiles: PartialProfile<Profile>[], preset: TilePreset): Promise<void> {
         const opened: BaseTabComponent[] = []
         for (const profile of profiles) {

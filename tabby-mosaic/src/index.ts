@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms'
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap'
 import TabbyCorePlugin, { CommandProvider, ConfigProvider, ConfigService, HotkeyProvider, HotkeysService, TabContextMenuItemProvider, ToolbarButtonProvider } from 'tabby-core'
 import { SettingsTabProvider } from 'tabby-settings'
+import { TerminalDecorator } from 'tabby-terminal'
 
 import { MosaicService } from './mosaic.service'
 import { MosaicConfigProvider } from './config'
@@ -12,6 +13,7 @@ import { MosaicContextMenu } from './contextMenu'
 import { MosaicCommandProvider } from './commandProvider'
 import { MosaicSettingsTabProvider } from './settings'
 import { MosaicSettingsTabComponent } from './settingsTab.component'
+import { PaneBarDecorator } from './paneBar'
 import { ButtonProvider } from './buttonProvider'
 
 @NgModule({
@@ -28,6 +30,7 @@ import { ButtonProvider } from './buttonProvider'
         { provide: TabContextMenuItemProvider, useClass: MosaicContextMenu, multi: true },
         { provide: CommandProvider, useClass: MosaicCommandProvider, multi: true },
         { provide: SettingsTabProvider, useClass: MosaicSettingsTabProvider, multi: true },
+        { provide: TerminalDecorator, useClass: PaneBarDecorator, multi: true },
     ],
     declarations: [
         MosaicSettingsTabComponent,
