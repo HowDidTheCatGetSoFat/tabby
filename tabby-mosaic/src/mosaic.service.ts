@@ -1,17 +1,21 @@
-import { Injectable, NgZone } from '@angular/core'
+import { Injectable, Inject, NgZone } from '@angular/core'
 import { debounceTime } from 'rxjs'
-import { AppService, BaseTabComponent, ConfigService, NotificationsService, PartialProfile, Profile, ProfilesService, SelectorService, SplitContainer, SplitTabComponent, TabRecoveryService, TranslateService } from 'tabby-core'
+import { AppService, BaseTabComponent, BOOTSTRAP_DATA, BootstrapData, ConfigService, NotificationsService, PartialProfile, Profile, ProfilesService, RecoveryToken, SelectorService, SplitContainer, SplitTabComponent, TabRecoveryService, TranslateService } from 'tabby-core'
 import { BaseTerminalTabComponent } from 'tabby-terminal'
 
 import { ipcRenderer } from './ipc'
 import { TilePreset, tilingStride } from './layout'
 import { releaseSessionKeepingPty } from './session'
 import * as windowManager from './windows'
+import { WindowBounds } from './windows'
+import { clearTabbyRecovery, readSession, writeOwnEntry } from './sessionStore'
+import { dlog, setDebugEnabled } from './debug'
 
-const PENDING_DETACH_TTL = 15000
+const PENDING_WINDOW_TTL = 15000
 
-interface PendingDetach {
-    token: unknown
+interface PendingWindow {
+    tokens: unknown[]
+    bounds: WindowBounds | null
     before: Set<number>
     at: number
 }
@@ -19,7 +23,7 @@ interface PendingDetach {
 @Injectable({ providedIn: 'root' })
 export class MosaicService {
     private lastLeaves = new Set<BaseTabComponent>()
-    private pendingDetach: PendingDetach[] = []
+    private pendingWindows: PendingWindow[] = []
 
     constructor (
         private app: AppService,
@@ -30,6 +34,7 @@ export class MosaicService {
         private selector: SelectorService,
         private translate: TranslateService,
         private zone: NgZone,
+        @Inject(BOOTSTRAP_DATA) private bootstrapData: BootstrapData,
     ) {
         this.app.tabsChanged$.pipe(debounceTime(250)).subscribe(() => {
             const leaves = this.currentLeaves()
@@ -81,8 +86,27 @@ export class MosaicService {
         // torn-out tab to a new window, send it now.
         ipcRenderer.on('mosaic:window-ready', (_event, windowId) => this.zone.run(() => this.onWindowReady(windowId)))
 
-        // Let any window that opened us push its pending tab our way.
-        windowManager.sendToOtherWindows('mosaic:window-ready', windowManager.currentWindowId())
+        // Announce readiness once the config store has loaded, so a window that
+        // opened us can hand over its pending tab. Announcing earlier would let
+        // the tab arrive before profile defaults exist and fail to recover.
+        this.config.ready$.subscribe(() => {
+            setDebugEnabled(this.config.store.mosaic.debugLog)
+            this.config.changed$.subscribe(() => setDebugEnabled(this.config.store.mosaic.debugLog))
+            dlog('ready: restoreWindows=' + this.config.store.mosaic.restoreWindows + ' isMain=' + this.bootstrapData.isMainWindow)
+            if (this.config.store.mosaic.restoreWindows && this.bootstrapData.isMainWindow) {
+                // Runs before the built-in restore (a synchronous subscriber
+                // beats its promise microtask), so clearing here suppresses the
+                // duplicate single-window restore.
+                clearTabbyRecovery()
+                void this.restoreSession()
+            }
+            windowManager.sendToOtherWindows('mosaic:window-ready', windowManager.currentWindowId())
+        })
+
+        // Persist this window's tabs and geometry for a managed restart. The
+        // interval also catches window moves, which do not raise tabsChanged$.
+        this.app.tabsChanged$.pipe(debounceTime(1000)).subscribe(() => void this.persistSession())
+        setInterval(() => void this.persistSession(), 10000)
     }
 
     tileWindows (preset: TilePreset): void {
@@ -121,19 +145,76 @@ export class MosaicService {
         if (windowId === null) {
             return
         }
-        // Only hand a torn-out tab to a window that did not exist when the move
-        // started, and drop tokens whose window never came up so they cannot
+        // Only hand tabs to a window that did not exist when the move or restore
+        // started, and drop entries whose window never came up so they cannot
         // surface in an unrelated window later.
         const now = Date.now()
-        this.pendingDetach = this.pendingDetach.filter(p => now - p.at < PENDING_DETACH_TTL)
-        const pending = this.pendingDetach.find(p => !p.before.has(windowId))
-        if (!pending) {
+        this.pendingWindows = this.pendingWindows.filter(p => now - p.at < PENDING_WINDOW_TTL)
+        const pending = this.pendingWindows.find(p => !p.before.has(windowId))
+        if (pending) {
+            this.pendingWindows = this.pendingWindows.filter(p => p !== pending)
+            dlog('onWindowReady ' + windowId + ': delivering ' + pending.tokens.length + ' tab(s), bounds=' + !!pending.bounds)
+            for (const token of pending.tokens) {
+                windowManager.sendToWindow(windowId, 'host:open-tab', token)
+            }
+            if (pending.bounds) {
+                // Restored window: it carries its own position, never re-tile.
+                windowManager.setWindowBounds(windowId, pending.bounds)
+                return
+            }
+        }
+        // A window opened (a moved-out tab or a plain new window). One window
+        // arranges them so the layout is not applied several times over.
+        if (this.config.store.mosaic.tileWindowsOnOpen && windowManager.isLeaderWindow()) {
+            windowManager.tileWindows(this.config.store.mosaic.preset, this.config.store.mosaic.tileAcrossMonitors)
+        }
+    }
+
+    private async persistSession (): Promise<void> {
+        if (!this.config.store.mosaic.restoreWindows) {
             return
         }
-        this.pendingDetach = this.pendingDetach.filter(p => p !== pending)
-        windowManager.sendToWindow(windowId, 'host:open-tab', pending.token)
-        if (this.config.store.mosaic.tileWindowsOnMove) {
-            windowManager.tileWindows(this.config.store.mosaic.preset, this.config.store.mosaic.tileAcrossMonitors)
+        const id = windowManager.currentWindowId()
+        if (id === null) {
+            return
+        }
+        const tokens: unknown[] = []
+        for (const tab of this.app.tabs) {
+            const token = await this.tabRecovery.getFullRecoveryToken(tab, { includeState: true })
+            if (token) {
+                tokens.push(JSON.parse(JSON.stringify(token)))
+            }
+        }
+        writeOwnEntry(id, windowManager.listWindows().map(w => w.id), {
+            order: id,
+            bounds: windowManager.currentBounds(),
+            tokens,
+        })
+    }
+
+    private async restoreSession (): Promise<void> {
+        const entries = readSession()
+        dlog('restoreSession: entries=' + entries.length)
+        if (entries.length === 0) {
+            return
+        }
+        const [first, ...rest] = entries
+        for (const token of first.tokens) {
+            const params = await this.tabRecovery.recoverTab(token as RecoveryToken)
+            if (params) {
+                this.app.openNewTab(params)
+            }
+        }
+        const ownId = windowManager.currentWindowId()
+        if (ownId !== null && first.bounds) {
+            windowManager.setWindowBounds(ownId, first.bounds)
+        }
+
+        const before = new Set(windowManager.listWindows().map(w => w.id))
+        const at = Date.now()
+        for (const entry of rest) {
+            this.pendingWindows.push({ tokens: entry.tokens, bounds: entry.bounds, before, at })
+            ipcRenderer.send('app:new-window')
         }
     }
 
@@ -189,6 +270,7 @@ export class MosaicService {
 
     async moveTabToNewWindow (tab: BaseTabComponent): Promise<void> {
         const parent = this.app.getParentTab(tab)
+        dlog('moveTabToNewWindow: targetIsSplit=' + (tab instanceof SplitTabComponent) + ' parentPanes=' + (parent ? parent.getAllTabs().length : 'none'))
         if (parent && parent.getAllTabs().length > 1) {
             // The tab is one pane of a tiled tab: move just that pane.
             await this.detachToNewWindow(tab, parent)
@@ -210,6 +292,21 @@ export class MosaicService {
         }
     }
 
+    untileActive (): void {
+        if (this.app.activeTab) {
+            this.untile(this.app.activeTab)
+        }
+    }
+
+    untilePane (tab: BaseTabComponent): void {
+        const parent = this.app.getParentTab(tab)
+        if (parent instanceof SplitTabComponent && parent.getAllTabs().length > 1) {
+            // Pull the live pane out of its split into its own top-level tab.
+            parent.removeTab(tab)
+            this.app.wrapAndAddTab(tab)
+        }
+    }
+
     moveActiveTabToNewWindow (): void {
         const tab = this.app.activeTab
         if (tab) {
@@ -225,6 +322,7 @@ export class MosaicService {
                 return
             }
             const leaves = target instanceof SplitTabComponent ? target.getAllTabs() : [target]
+            dlog('detachToNewWindow: pane=' + !!paneParent + ' targetIsSplit=' + (target instanceof SplitTabComponent) + ' leaves=' + leaves.length + ' tokenType=' + (token as { type?: string }).type)
             for (const leaf of leaves) {
                 if (leaf instanceof BaseTerminalTabComponent) {
                     releaseSessionKeepingPty(leaf)
@@ -238,8 +336,9 @@ export class MosaicService {
             // The token may hold config proxies that structured clone (IPC)
             // cannot serialize, so round-trip it through JSON first. It is sent
             // once the new window reports itself ready (see onWindowReady).
-            this.pendingDetach.push({
-                token: JSON.parse(JSON.stringify(token)),
+            this.pendingWindows.push({
+                tokens: [JSON.parse(JSON.stringify(token))],
+                bounds: null,
                 before: new Set(windowManager.listWindows().map(w => w.id)),
                 at: Date.now(),
             })

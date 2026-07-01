@@ -24,10 +24,10 @@ h3.mb-3(translate) Mosaic
 
 .form-line
     .header
-        .title(translate) Tile windows after moving a tab out
-        .description(translate) When a tab is moved to a new window, tile all windows
+        .title(translate) Tile windows when a new one opens
+        .description(translate) Arrange all windows into the layout whenever a new window is opened
     toggle(
-        [(ngModel)]='config.store.mosaic.tileWindowsOnMove',
+        [(ngModel)]='config.store.mosaic.tileWindowsOnOpen',
         (ngModelChange)='config.save()'
     )
 
@@ -60,5 +60,23 @@ h3.mb-3(translate) Mosaic
         type='number',
         min='0',
         [(ngModel)]='config.store.mosaic.paneBarAnimationMs',
+        (ngModelChange)='config.save()'
+    )
+
+.form-line
+    .header
+        .title(translate) Restore windows on startup
+        .description(translate) Reopen every window with its tabs, layout and position when Tabby starts
+    toggle(
+        [(ngModel)]='config.store.mosaic.restoreWindows',
+        (ngModelChange)='config.save()'
+    )
+
+.form-line
+    .header
+        .title(translate) Write a debug log
+        .description(translate) Append window management diagnostics to tabby-mosaic-debug.log in your home folder
+    toggle(
+        [(ngModel)]='config.store.mosaic.debugLog',
         (ngModelChange)='config.save()'
     )

@@ -53,11 +53,11 @@ export class MosaicContextMenu extends TabContextMenuItemProvider {
                 },
             },
             {
-                label: this.translate.instant('Tile windows after moving a tab out'),
+                label: this.translate.instant('Tile windows when a new one opens'),
                 type: 'checkbox',
-                checked: this.config.store.mosaic.tileWindowsOnMove,
+                checked: this.config.store.mosaic.tileWindowsOnOpen,
                 click: () => {
-                    this.config.store.mosaic.tileWindowsOnMove = !this.config.store.mosaic.tileWindowsOnMove
+                    this.config.store.mosaic.tileWindowsOnOpen = !this.config.store.mosaic.tileWindowsOnOpen
                     this.config.save()
                 },
             },

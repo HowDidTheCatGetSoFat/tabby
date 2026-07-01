@@ -2,6 +2,7 @@ import type * as Remote from '@electron/remote'
 import type { BrowserWindow } from 'electron'
 
 import { TilePreset } from './layout'
+import { dlog } from './debug'
 
 export interface WindowInfo {
     id: number
@@ -9,7 +10,7 @@ export interface WindowInfo {
     current: boolean
 }
 
-interface Area {
+export interface WindowBounds {
     x: number
     y: number
     width: number
@@ -53,7 +54,7 @@ function present (win: BrowserWindow): void {
     win.moveTop()
 }
 
-function place (win: BrowserWindow, area: Area): void {
+function place (win: BrowserWindow, area: WindowBounds): void {
     if (win.isMaximized()) {
         win.unmaximize()
     }
@@ -93,7 +94,7 @@ export function tileWindows (preset: TilePreset | undefined, acrossMonitors: boo
         return
     }
 
-    const groups: { windows: BrowserWindow[], area: Area }[] = []
+    const groups: { windows: BrowserWindow[], area: WindowBounds }[] = []
     if (acrossMonitors) {
         const displays = api.screen.getAllDisplays()
         displays.forEach((display, di) => {
@@ -151,8 +152,30 @@ export function cascadeWindows (): void {
     present(focused)
 }
 
+export function isLeaderWindow (): boolean {
+    const id = currentId()
+    if (id === null) {
+        return false
+    }
+    const ids = liveWindows().map(w => w.id)
+    return ids.length > 0 && id === Math.min(...ids)
+}
+
+export function currentBounds (): WindowBounds | null {
+    const win = remote()?.getCurrentWindow()
+    return win ? win.getBounds() : null
+}
+
+export function setWindowBounds (id: number, bounds: WindowBounds): void {
+    const win = remote()?.BrowserWindow.fromId(id)
+    if (win && !win.isDestroyed()) {
+        place(win, bounds)
+    }
+}
+
 export function sendToWindow (id: number, channel: string, payload?: unknown): void {
     const win = remote()?.BrowserWindow.fromId(id)
+    dlog('sendToWindow id=' + id + ' channel=' + channel + ' found=' + (win ? 'yes' : 'no'))
     if (win && !win.isDestroyed()) {
         win.webContents.send(channel, payload)
     }
@@ -160,9 +183,9 @@ export function sendToWindow (id: number, channel: string, payload?: unknown): v
 
 export function sendToOtherWindows (channel: string, payload?: unknown): void {
     const id = currentId()
-    for (const win of liveWindows()) {
-        if (win.id !== id) {
-            win.webContents.send(channel, payload)
-        }
+    const others = liveWindows().filter(w => w.id !== id)
+    dlog('sendToOtherWindows channel=' + channel + ' remote=' + (remote() ? 'yes' : 'no') + ' others=' + others.length + ' ids=[' + others.map(w => w.id).join(',') + ']')
+    for (const win of others) {
+        win.webContents.send(channel, payload)
     }
 }

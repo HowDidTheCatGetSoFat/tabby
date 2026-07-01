@@ -5,11 +5,13 @@ export class MosaicConfigProvider extends ConfigProvider {
     defaults = {
         mosaic: {
             rearrangeOnChange: false,
-            tileWindowsOnMove: false,
+            tileWindowsOnOpen: false,
             tileAcrossMonitors: false,
             preset: 'grid',
             paneBar: 'hover',
             paneBarAnimationMs: 150,
+            restoreWindows: true,
+            debugLog: false,
         },
         hotkeys: {
             'mosaic-grid': [],

@@ -44,6 +44,9 @@ export class PaneBarDecorator extends TerminalDecorator {
                 void parent.splitTab(tab, 'r')
             }
         }))
+        actions.appendChild(this.makeIcon('fa-object-ungroup', 'Untile this pane', () => {
+            this.mosaic.untilePane(tab)
+        }))
         actions.appendChild(this.makeIcon('fa-window-restore', 'Move to new window', () => {
             void this.mosaic.moveTabToNewWindow(tab)
         }))

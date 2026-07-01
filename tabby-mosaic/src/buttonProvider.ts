@@ -3,7 +3,7 @@ import { ToolbarButtonProvider, ToolbarButton, TranslateService } from 'tabby-co
 
 import { MosaicService } from './mosaic.service'
 import { showLayoutMenu } from './layoutMenu'
-import { cascadeIcon, columnsIcon, gridIcon, masterIcon, rowsIcon, tabsMenuIcon, windowsColumnsIcon, windowsGridIcon, windowsMenuIcon, windowsRowsIcon } from './icons'
+import { cascadeIcon, columnsIcon, gridIcon, masterIcon, rowsIcon, tabsMenuIcon, untileIcon, windowsColumnsIcon, windowsGridIcon, windowsMenuIcon, windowsRowsIcon } from './icons'
 
 /** @hidden */
 @Injectable()
@@ -38,6 +38,7 @@ export class ButtonProvider extends ToolbarButtonProvider {
             { icon: columnsIcon, label: this.translate.instant('Columns'), run: () => this.mosaic.tile('columns') },
             { icon: rowsIcon, label: this.translate.instant('Rows'), run: () => this.mosaic.tile('rows') },
             { icon: masterIcon, label: this.translate.instant('Master stack'), run: () => this.mosaic.tile('master') },
+            { icon: untileIcon, label: this.translate.instant('Untile'), run: () => this.mosaic.untileActive() },
         ])
     }
 
