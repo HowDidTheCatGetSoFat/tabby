@@ -3,7 +3,7 @@
   "version": "1.0.231-nightly.0",
   "description": "Tile and manage Tabby tabs and windows: grids, master-stack, tear-out, cascade, window switcher and more",
   "keywords": [
-    "tabby-builtin-plugin"
+    "tabby-plugin"
   ],
   "main": "dist/index.js",
   "typings": "typings/index.d.ts",
