@@ -5,10 +5,21 @@ import { BaseTerminalTabComponent } from 'tabby-terminal'
 
 import { ipcRenderer } from './ipc'
 import { TilePreset, tilingStride } from './layout'
+import { releaseSessionKeepingPty } from './session'
+import * as windowManager from './windows'
+
+const PENDING_DETACH_TTL = 15000
+
+interface PendingDetach {
+    token: unknown
+    before: Set<number>
+    at: number
+}
 
 @Injectable({ providedIn: 'root' })
 export class MosaicService {
     private lastLeaves = new Set<BaseTabComponent>()
+    private pendingDetach: PendingDetach[] = []
 
     constructor (
         private app: AppService,
@@ -42,10 +53,10 @@ export class MosaicService {
             }
         }))
 
-        // Gather: export this window's tabs to a target window, keeping local
-        // PTYs alive, then let the main process close this window.
+        // Gather: another window asked us to hand our tabs to it. Serialize
+        // every tab, release local PTYs (keeping them alive), send them across
+        // and close this window.
         ipcRenderer.on('host:export-tabs', (_event, targetId) => this.zone.run(async () => {
-            const tokens: unknown[] = []
             for (const tab of [...this.app.tabs]) {
                 const token = await this.tabRecovery.getFullRecoveryToken(tab, { includeState: true })
                 if (!token) {
@@ -54,42 +65,76 @@ export class MosaicService {
                 const leaves = tab instanceof SplitTabComponent ? tab.getAllTabs() : [tab]
                 for (const leaf of leaves) {
                     if (leaf instanceof BaseTerminalTabComponent) {
-                        await leaf.releaseSession()
+                        releaseSessionKeepingPty(leaf)
                     }
                 }
-                tokens.push(JSON.parse(JSON.stringify(token)))
+                windowManager.sendToWindow(targetId, 'host:open-tab', JSON.parse(JSON.stringify(token)))
             }
-            ipcRenderer.send('app:relay-tabs', { targetId, tokens })
+            ipcRenderer.send('window-close')
         }))
+
+        // Close-other-windows asks each other window to close itself, since a
+        // window can only close through its own process.
+        ipcRenderer.on('mosaic:close-self', () => this.zone.run(() => ipcRenderer.send('window-close')))
+
+        // A freshly opened window announces itself; if we are waiting to hand a
+        // torn-out tab to a new window, send it now.
+        ipcRenderer.on('mosaic:window-ready', (_event, windowId) => this.zone.run(() => this.onWindowReady(windowId)))
+
+        // Let any window that opened us push its pending tab our way.
+        windowManager.sendToOtherWindows('mosaic:window-ready', windowManager.currentWindowId())
     }
 
     tileWindows (preset: TilePreset): void {
-        ipcRenderer.send('app:tile-windows', preset, this.config.store.mosaic.tileAcrossMonitors)
+        windowManager.tileWindows(preset, this.config.store.mosaic.tileAcrossMonitors)
     }
 
     cascadeWindows (): void {
-        ipcRenderer.send('app:cascade-windows')
+        windowManager.cascadeWindows()
     }
 
     closeOtherWindows (): void {
-        ipcRenderer.send('app:close-other-windows')
+        windowManager.sendToOtherWindows('mosaic:close-self')
     }
 
     gatherWindows (): void {
-        ipcRenderer.send('app:gather-windows')
+        const id = windowManager.currentWindowId()
+        if (id !== null) {
+            windowManager.sendToOtherWindows('host:export-tabs', id)
+        }
     }
 
     async switchWindow (): Promise<void> {
-        const windows = (await ipcRenderer.invoke('app:list-windows')) as { id: number, title: string, current: boolean }[] | undefined
-        if (!windows || windows.length < 2) {
+        const windows = windowManager.listWindows()
+        if (windows.length < 2) {
             return
         }
         const options = windows.map(w => ({
             name: w.title,
             description: w.current ? this.translate.instant('Current window') : '',
-            callback: () => ipcRenderer.send('app:focus-window', w.id),
+            callback: () => windowManager.focusWindow(w.id),
         }))
         await this.selector.show(this.translate.instant('Switch window'), options)
+    }
+
+    private onWindowReady (windowId: number | null): void {
+        if (windowId === null) {
+            return
+        }
+        // Only hand a torn-out tab to a window that did not exist when the move
+        // started, and drop tokens whose window never came up so they cannot
+        // surface in an unrelated window later.
+        const now = Date.now()
+        this.pendingDetach = this.pendingDetach.filter(p => now - p.at < PENDING_DETACH_TTL)
+        const pending = this.pendingDetach.find(p => !p.before.has(windowId))
+        if (!pending) {
+            return
+        }
+        this.pendingDetach = this.pendingDetach.filter(p => p !== pending)
+        windowManager.sendToWindow(windowId, 'host:open-tab', pending.token)
+        if (this.config.store.mosaic.tileWindowsOnMove) {
+            windowManager.tileWindows(this.config.store.mosaic.preset, this.config.store.mosaic.tileAcrossMonitors)
+        }
     }
 
     tile (preset: TilePreset): void {
@@ -182,7 +227,7 @@ export class MosaicService {
             const leaves = target instanceof SplitTabComponent ? target.getAllTabs() : [target]
             for (const leaf of leaves) {
                 if (leaf instanceof BaseTerminalTabComponent) {
-                    await leaf.releaseSession()
+                    releaseSessionKeepingPty(leaf)
                 }
             }
             if (paneParent) {
@@ -191,9 +236,14 @@ export class MosaicService {
                 this.app.closeTab(target, false)
             }
             // The token may hold config proxies that structured clone (IPC)
-            // cannot serialize, so round-trip it through JSON first.
-            const tile = this.config.store.mosaic.tileWindowsOnMove ? this.config.store.mosaic.preset : null
-            ipcRenderer.send('app:new-window-with-tab', { token: JSON.parse(JSON.stringify(token)), tile })
+            // cannot serialize, so round-trip it through JSON first. It is sent
+            // once the new window reports itself ready (see onWindowReady).
+            this.pendingDetach.push({
+                token: JSON.parse(JSON.stringify(token)),
+                before: new Set(windowManager.listWindows().map(w => w.id)),
+                at: Date.now(),
+            })
+            ipcRenderer.send('app:new-window')
         } catch (error) {
             this.notifications.error('Could not move the tab to a new window')
             console.error('mosaic: move to new window failed', error)

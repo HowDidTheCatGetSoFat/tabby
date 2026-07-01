@@ -1,4 +1,4 @@
-import { app, ipcMain, Menu, Tray, shell, screen, globalShortcut, MenuItemConstructorOptions, WebContents, Rectangle } from 'electron'
+import { app, ipcMain, Menu, Tray, shell, screen, globalShortcut, MenuItemConstructorOptions, WebContents } from 'electron'
 import promiseIpc from 'electron-promise-ipc'
 import * as remote from '@electron/remote/main'
 import { spawnSync } from 'child_process'
@@ -164,107 +164,6 @@ export class Application {
         for (const window of this.windows) {
             window.present()
         }
-    }
-
-    tileWindows (preset?: string, acrossMonitors?: boolean): void {
-        const windows = this.windows.filter(w => !w.isDestroyed() && w.isVisible())
-        if (windows.length < 2) {
-            return
-        }
-        const groups: { windows: Window[], area: Rectangle }[] = []
-        if (acrossMonitors) {
-            const displays = screen.getAllDisplays()
-            displays.forEach((display, di) => {
-                groups.push({ windows: windows.filter((_, wi) => wi % displays.length === di), area: display.workArea })
-            })
-        } else {
-            const focused = windows.find(w => w.isFocused()) ?? windows[0]
-            const focusedBounds = focused.getBounds()
-            groups.push({ windows, area: (focusedBounds ? screen.getDisplayMatching(focusedBounds) : screen.getPrimaryDisplay()).workArea })
-        }
-        for (const group of groups) {
-            const groupWindows = group.windows
-            if (groupWindows.length === 0) {
-                continue
-            }
-            let columns = Math.ceil(Math.sqrt(groupWindows.length))
-            if (preset === 'columns') {
-                columns = groupWindows.length
-            } else if (preset === 'rows') {
-                columns = 1
-            }
-            const rows = Math.ceil(groupWindows.length / columns)
-            groupWindows.forEach((window, index) => {
-                const column = index % columns
-                const row = Math.floor(index / columns)
-                window.setBounds({
-                    x: Math.round(group.area.x + column * group.area.width / columns),
-                    y: Math.round(group.area.y + row * group.area.height / rows),
-                    width: Math.round(group.area.width / columns),
-                    height: Math.round(group.area.height / rows),
-                })
-            })
-        }
-    }
-
-    cascadeWindows (): void {
-        const windows = this.windows.filter(w => !w.isDestroyed() && w.isVisible())
-        if (windows.length < 2) {
-            return
-        }
-        const focused = windows.find(w => w.isFocused()) ?? windows[0]
-        const focusedBounds = focused.getBounds()
-        const area = (focusedBounds ? screen.getDisplayMatching(focusedBounds) : screen.getPrimaryDisplay()).workArea
-        const width = Math.round(area.width * 0.6)
-        const height = Math.round(area.height * 0.7)
-        const offset = 36
-        windows.forEach((window, index) => {
-            window.setBounds({
-                x: area.x + index * offset,
-                y: area.y + index * offset,
-                width,
-                height,
-            })
-        })
-        focused.present()
-    }
-
-    listWindows (sender: WebContents): { id: number, title: string, current: boolean }[] {
-        return this.windows.filter(w => !w.isDestroyed() && w.isVisible()).map(window => ({
-            id: window.getId(),
-            title: window.getTitle(),
-            current: window.webContents.id === sender.id,
-        }))
-    }
-
-    focusWindow (id: number): void {
-        this.windows.find(window => window.getId() === id)?.present()
-    }
-
-    closeOtherWindows (sender: WebContents): void {
-        for (const window of this.windows.filter(w => w.webContents.id !== sender.id)) {
-            window.close()
-        }
-    }
-
-    gatherWindows (sender: WebContents): void {
-        const targetId = this.windows.find(w => w.webContents.id === sender.id)?.getId()
-        if (targetId === undefined) {
-            return
-        }
-        for (const window of this.windows.filter(w => w.webContents.id !== sender.id && !w.isDestroyed())) {
-            window.send('host:export-tabs', targetId)
-        }
-    }
-
-    relayTabs (targetId: number, tokens: unknown[], sender: WebContents): void {
-        const target = this.windows.find(w => w.getId() === targetId)
-        if (target) {
-            for (const token of tokens) {
-                target.send('host:open-tab', token)
-            }
-        }
-        this.windows.find(w => w.webContents.id === sender.id)?.close()
     }
 
     broadcast (event: string, ...args: any[]): void {

@@ -48,42 +48,6 @@ ipcMain.on('app:new-window', () => {
     application.newWindow()
 })
 
-ipcMain.on('app:tile-windows', (_event, preset, acrossMonitors) => {
-    application.tileWindows(preset, acrossMonitors)
-})
-
-ipcMain.on('app:cascade-windows', () => {
-    application.cascadeWindows()
-})
-
-ipcMain.handle('app:list-windows', event => {
-    return application.listWindows(event.sender)
-})
-
-ipcMain.on('app:focus-window', (_event, id) => {
-    application.focusWindow(id)
-})
-
-ipcMain.on('app:close-other-windows', event => {
-    application.closeOtherWindows(event.sender)
-})
-
-ipcMain.on('app:gather-windows', event => {
-    application.gatherWindows(event.sender)
-})
-
-ipcMain.on('app:relay-tabs', (event, payload) => {
-    application.relayTabs(payload.targetId, payload.tokens, event.sender)
-})
-
-ipcMain.on('app:new-window-with-tab', async (_event, payload) => {
-    const window = await application.newWindow()
-    window.send('host:open-tab', payload.token)
-    if (payload.tile) {
-        application.tileWindows(payload.tile)
-    }
-})
-
 process.on('uncaughtException' as any, err => {
     console.log(err)
     application.broadcast('uncaughtException', err)
