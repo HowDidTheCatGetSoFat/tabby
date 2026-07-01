@@ -5,3 +5,11 @@ export const columnsIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0
 export const rowsIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="14" height="6" rx="1"/><rect x="1" y="9" width="14" height="6" rx="1"/></svg>'
 
 export const masterIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="8" height="14" rx="1"/><rect x="11" y="1" width="4" height="6" rx="1"/><rect x="11" y="9" width="4" height="6" rx="1"/></svg>'
+
+export const windowsGridIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>'
+
+export const windowsColumnsIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="5" height="13" rx="1"/><rect x="9.5" y="1.5" width="5" height="13" rx="1"/></svg>'
+
+export const windowsRowsIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="13" height="5" rx="1"/><rect x="1.5" y="9.5" width="13" height="5" rx="1"/></svg>'
+
+export const cascadeIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="9" height="9" rx="1"/><rect x="5.5" y="5.5" width="9" height="9" rx="1"/></svg>'
