@@ -6,13 +6,10 @@ import { MosaicService } from './mosaic.service'
 
 const STYLE_ID = 'mosaic-pane-bar-styles'
 const BAR_HEIGHT = 24
-const PEEK_MARGIN = 4
 
 /** @hidden */
 @Injectable()
 export class PaneBarDecorator extends TerminalDecorator {
-    private listeners = new Map<BaseTerminalTabComponent<any>, () => void>()
-
     constructor (
         private config: ConfigService,
         private app: AppService,
@@ -67,23 +64,6 @@ export class PaneBarDecorator extends TerminalDecorator {
         const update = (): void => this.updateBar(tab, host, bar, title)
         update()
 
-        // In hover mode the bar only opens when the pointer is near the top
-        // edge, so working inside the terminal never nudges the layout.
-        const onMove = (event: MouseEvent): void => {
-            if (!bar.classList.contains('mosaic-bar-hover')) {
-                return
-            }
-            const rect = host.getBoundingClientRect()
-            bar.classList.toggle('mosaic-bar-peek', event.clientY - rect.top <= BAR_HEIGHT + PEEK_MARGIN)
-        }
-        const onLeave = (): void => bar.classList.remove('mosaic-bar-peek')
-        host.addEventListener('mousemove', onMove)
-        host.addEventListener('mouseleave', onLeave)
-        this.listeners.set(tab, () => {
-            host.removeEventListener('mousemove', onMove)
-            host.removeEventListener('mouseleave', onLeave)
-        })
-
         this.subscribeUntilDetached(tab, tab.titleChange$.subscribe(() => update()))
         this.subscribeUntilDetached(tab, this.app.tabsChanged$.subscribe(() => update()))
         this.subscribeUntilDetached(tab, this.config.changed$.subscribe(() => update()))
@@ -91,8 +71,6 @@ export class PaneBarDecorator extends TerminalDecorator {
 
     detach (tab: BaseTerminalTabComponent<any>): void {
         super.detach(tab)
-        this.listeners.get(tab)?.()
-        this.listeners.delete(tab)
         const host = tab.element.nativeElement as HTMLElement | undefined
         host?.querySelector('.mosaic-pane-bar')?.remove()
         host?.classList.remove('mosaic-pane-host')
@@ -107,9 +85,6 @@ export class PaneBarDecorator extends TerminalDecorator {
         bar.classList.toggle('mosaic-bar-always', tiled && mode === 'always')
         bar.classList.toggle('mosaic-bar-hover', tiled && mode === 'hover')
         bar.classList.toggle('mosaic-bar-hidden', !tiled || mode === 'off')
-        if (mode !== 'hover' || !tiled) {
-            bar.classList.remove('mosaic-bar-peek')
-        }
     }
 
     private makeIcon (faClass: string, label: string, handler: () => void): HTMLElement {
@@ -143,7 +118,7 @@ export class PaneBarDecorator extends TerminalDecorator {
             .mosaic-pane-bar-icon { cursor: pointer; opacity: 0.75; line-height: ${BAR_HEIGHT}px; }
             .mosaic-pane-bar-icon:hover { opacity: 1; }
             .mosaic-pane-bar.mosaic-bar-always { height: ${BAR_HEIGHT}px; }
-            .mosaic-pane-bar.mosaic-bar-hover.mosaic-bar-peek { height: ${BAR_HEIGHT}px; }
+            .mosaic-pane-host:hover .mosaic-pane-bar.mosaic-bar-hover { height: ${BAR_HEIGHT}px; }
             .mosaic-pane-bar.mosaic-bar-hidden { display: none; }
         `
         document.head.appendChild(style)
