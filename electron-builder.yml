@@ -1,6 +1,6 @@
 ---
-appId: org.tabby
-productName: Tabby
+appId: org.tabby-fx
+productName: tabby-fx
 compression: normal
 npmRebuild: false
 protocols:
@@ -60,7 +60,7 @@ mac:
   entitlements: "./build/mac/entitlements.plist"
   entitlementsInherit: "./build/mac/entitlements.plist"
   extendInfo:
-    ElectronTeamID: ${teamId}
+    ElectronTeamID: V7MBYBHJX6
     NSRequiresAquaSystemAppearance: false
     NSCameraUsageDescription: "A subprocess requests access to the device's camera."
     NSMicrophoneUsageDescription: "A subprocess requests access to the device's microphone."
