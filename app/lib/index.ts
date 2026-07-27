@@ -6,11 +6,9 @@ import './portable'
 // set defaults of environment variables
 import 'dotenv/config'
 
-// Run dev builds as a separate app so they don't share config or the
+// Run this fork as a separate app so it doesn't share config or the
 // single-instance lock with an installed Tabby
-if (process.env.TABBY_DEV) {
-    app.setName('tabby-fx')
-}
+app.setName('tabby-fx')
 
 process.env.TABBY_PLUGINS ??= ''
 process.env.TABBY_CONFIG_DIRECTORY ??= app.getPath('userData')
