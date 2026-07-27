@@ -17,5 +17,12 @@
     "typings"
   ],
   "author": "Mariano Abad <weimaraner@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HowDidTheCatGetSoFat/tabby.git",
+    "directory": "tabby-mosaic"
+  },
+  "homepage": "https://github.com/HowDidTheCatGetSoFat/tabby/tree/feat/auto-tile/tabby-mosaic#readme",
+  "bugs": "https://github.com/HowDidTheCatGetSoFat/tabby/issues"
 }
