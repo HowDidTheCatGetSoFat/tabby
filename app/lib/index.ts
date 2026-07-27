@@ -6,8 +6,14 @@ import './portable'
 // set defaults of environment variables
 import 'dotenv/config'
 
-// Run this fork as a separate app so it doesn't share config or the
-// single-instance lock with an installed Tabby
+// Run this fork as a separate, isolated app. A Tabby terminal injects
+// NODE_PATH and TABBY_* pointing at the installed Tabby, so launching this
+// build from one would otherwise load the installed Tabby's plugins (signed
+// with a different team) and fail to bootstrap. Drop any inherited values so
+// the paths are recomputed for this app.
+process.env.NODE_PATH = ''
+delete process.env.TABBY_PLUGINS
+delete process.env.TABBY_CONFIG_DIRECTORY
 app.setName('tabby-fx')
 
 process.env.TABBY_PLUGINS ??= ''
